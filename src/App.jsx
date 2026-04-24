@@ -1407,7 +1407,7 @@ export default function App() {
       </section>
 
       {/* ── FEATURES 2×2 ── */}
-      <section id="avantages" style={{ background: C.bg, padding: sectionPad }}>
+      <section id="avantages" style={{ background: C.bg, paddingTop: 'clamp(3.5rem, 8vw, 7rem)', paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
         
         <div style={container}>
           <Reveal>
@@ -1466,9 +1466,9 @@ export default function App() {
         </div>
       </section>
 
-      <div style={{ height: '80px', background: `linear-gradient(to bottom, ${C.bg}, ${C.bgAlt})` }} />
+      <div style={{ height: '160px', background: `linear-gradient(to bottom, ${C.bg}, ${C.bgAlt})` }} />
       {/* ── COMMENT ÇA MARCHE ── */}
-      <section id="comment-ca-marche" style={{ background: C.bgAlt, padding: sectionPad }}>
+      <section id="comment-ca-marche" style={{ background: C.bgAlt, paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
         
         <div style={container}>
           <Reveal>
@@ -1550,9 +1550,9 @@ export default function App() {
         </div>
       </section>
 
-      <div style={{ height: '80px', background: `linear-gradient(to bottom, ${C.bgAlt}, ${C.bg})` }} />
+      <div style={{ height: '160px', background: `linear-gradient(to bottom, ${C.bgAlt}, ${C.bg})` }} />
       {/* ── EFFICACITÉ ── */}
-      <section id="efficacite" style={{ background: C.bg, padding: sectionPad }}>
+      <section id="efficacite" style={{ background: C.bg, paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
         
         <div style={container}>
           <Reveal>
@@ -1621,10 +1621,10 @@ export default function App() {
         </div>
       </section>
 
-      <div style={{ height: '80px', background: `linear-gradient(to bottom, ${C.bg}, ${C.bgAlt})` }} />
+      <div style={{ height: '160px', background: `linear-gradient(to bottom, ${C.bg}, ${C.bgAlt})` }} />
 
       {/* ── FAQ ── */}
-      <section id="faq" style={{ background: C.bgAlt, padding: sectionPad }}>
+      <section id="faq" style={{ background: C.bgAlt, paddingTop: 0, paddingBottom: 'clamp(3.5rem, 8vw, 7rem)', paddingLeft: 0, paddingRight: 0 }}>
         
         <div style={container}>
           <Reveal>
