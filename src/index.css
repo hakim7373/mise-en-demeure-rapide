@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: #FFFFFF;
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+
+/* Hero document float animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(1deg); }
+  50%       { transform: translateY(-14px) rotate(1deg); }
+}
+
+/* FAQ smooth accordion */
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+.faq-answer.open {
+  max-height: 600px;
+}
