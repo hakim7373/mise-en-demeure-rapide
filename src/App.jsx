@@ -1466,6 +1466,7 @@ export default function App() {
         </div>
       </section>
 
+      <div style={{ height: '80px', background: `linear-gradient(to bottom, ${C.bg}, ${C.bgAlt})` }} />
       {/* ── COMMENT ÇA MARCHE ── */}
       <section id="comment-ca-marche" style={{ background: C.bgAlt, padding: sectionPad }}>
         
@@ -1549,6 +1550,7 @@ export default function App() {
         </div>
       </section>
 
+      <div style={{ height: '80px', background: `linear-gradient(to bottom, ${C.bgAlt}, ${C.bg})` }} />
       {/* ── EFFICACITÉ ── */}
       <section id="efficacite" style={{ background: C.bg, padding: sectionPad }}>
         
@@ -1618,6 +1620,8 @@ export default function App() {
           </div>
         </div>
       </section>
+
+      <div style={{ height: '80px', background: `linear-gradient(to bottom, ${C.bg}, ${C.bgAlt})` }} />
 
       {/* ── FAQ ── */}
       <section id="faq" style={{ background: C.bgAlt, padding: sectionPad }}>
