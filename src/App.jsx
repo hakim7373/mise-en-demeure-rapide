@@ -98,7 +98,7 @@ const CountUp = ({ target, suffix = '', duration = 1800 }) => {
         requestAnimationFrame(tick);
         obs.unobserve(el);
       }
-    }, { threshold: 0.4 });
+    }, { threshold: 0.15 });
     if (el) obs.observe(el);
     return () => obs.disconnect();
   }, [target, duration]);
@@ -222,6 +222,67 @@ const IlluSolution = () => (
     ))}
   </div>
 );
+
+/* ── FAQ data ────────────────────────────────────────────────── */
+const faqsData = [
+  { q: "Combien ça coûte ?", a: "19,99€ tout compris. Ce prix inclut la rédaction personnalisée de votre mise en demeure avec les références juridiques adaptées, ainsi que l'envoi par lettre recommandée avec accusé de réception. Aucun frais caché." },
+  { q: "Quelle est la différence entre une mise en demeure et une simple lettre de réclamation ?", a: "Une lettre de réclamation est un courrier informel sans portée juridique particulière. La mise en demeure, elle, est encadrée par les articles 1344 et suivants du Code civil. Elle fait courir les intérêts de retard (article 1344-1), constitue une preuve de votre démarche amiable et représente souvent un préalable obligatoire avant toute action en justice." },
+  { q: "Est-ce juridiquement valide ?", a: "Oui. Chaque mise en demeure est rédigée en conformité avec le droit français (articles 1344 et suivants du Code civil). L'envoi en recommandé avec AR lui confère une valeur probante devant les tribunaux." },
+  { q: "Dois-je passer par un avocat ?", a: "Non. Toute personne physique ou morale peut envoyer une mise en demeure. Ce n'est pas un acte réservé aux avocats ni aux professionnels du droit. Notre service vous aide à rédiger un courrier conforme et à l'envoyer dans les règles, sans intermédiaire juridique." },
+  { q: "Quels types de litiges sont couverts ?", a: "Loyer impayé, dépôt de garantie non restitué, produit non livré ou défectueux, facture impayée, travaux inachevés, vice caché, résiliation de contrat, et bien d'autres situations du quotidien." },
+  { q: "Comment se passe l'envoi en recommandé ?", a: "Vous n'avez rien à faire. Une fois votre mise en demeure validée, nous nous chargeons de l'impression et de l'envoi en lettre recommandée avec accusé de réception via La Poste." },
+  { q: "Que se passe-t-il si l'autre partie ne répond pas ?", a: "Si votre mise en demeure reste sans réponse dans le délai fixé (entre 8 et 15 jours), vous êtes en droit de saisir le tribunal compétent. L'accusé de réception prouve votre tentative de résolution amiable, souvent exigée par les juges." },
+  { q: "Les intérêts de retard courent-ils à partir de la mise en demeure ?", a: "Oui. Conformément à l'article 1344-1 du Code civil, les intérêts moratoires commencent à courir à compter de la réception de la mise en demeure, au taux légal en vigueur." },
+  { q: "Puis-je voir ma mise en demeure avant l'envoi ?", a: "Oui. Votre mise en demeure vous est présentée avant tout paiement. Vous pouvez la relire et vérifier les informations avant de valider." },
+  { q: "Est-ce que votre service constitue une consultation juridique ?", a: "Non. Notre service est un outil d'aide à la rédaction et à l'envoi de mises en demeure. Il ne constitue ni une consultation juridique ni un conseil personnalisé au sens de la loi du 31 décembre 1971. Pour les situations complexes, consultez un avocat." },
+];
+
+/* ── Page FAQ dédiée ─────────────────────────────────────────── */
+const FAQPage = ({ onBack, onGo }) => {
+  const isMobile = useIsMobile();
+  return (
+    <div style={{ minHeight: '100vh', background: C.bg, fontFamily: F }}>
+      {/* Header */}
+      <div style={{ background: C.bg, borderBottom: `1px solid ${C.borderLight}`, padding: '1.1rem 0', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ maxWidth: '820px', margin: '0 auto', padding: '0 clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button onClick={onBack} style={{ background: 'none', border: 'none', color: C.textMid, fontFamily: F, fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', padding: 0, transition: 'color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = C.textDark}
+            onMouseLeave={e => e.currentTarget.style.color = C.textMid}>
+            ← Accueil
+          </button>
+          <button onClick={onGo} style={{ background: C.accent, color: C.textDark, padding: '0.6rem 1.25rem', borderRadius: '8px', border: 'none', fontFamily: F, fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}>
+            Envoyer une lettre
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ maxWidth: '820px', margin: '0 auto', padding: isMobile ? '3rem 1.5rem 5rem' : '5rem 2.5rem 7rem' }}>
+        <p style={{ color: C.accent, fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.875rem' }}>Aide</p>
+        <h1 style={{ fontFamily: F, fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.75rem', lineHeight: 1.2 }}>
+          Questions fréquentes
+        </h1>
+        <p style={{ color: C.textMid, fontSize: '1rem', lineHeight: 1.7, marginBottom: '3.5rem', maxWidth: '540px' }}>
+          Tout ce que vous devez savoir sur notre service de mise en demeure en ligne.
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {faqsData.map(f => <FAQ key={f.q} q={f.q} a={f.a} />)}
+        </div>
+
+        <div style={{ marginTop: '3rem', padding: '1.75rem 2rem', background: C.bgAlt, borderRadius: '12px', border: `1px solid ${C.borderLight}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+          <div>
+            <p style={{ fontWeight: 700, color: C.textDark, fontSize: '0.925rem', marginBottom: '0.25rem' }}>Vous n'avez pas trouvé de réponse ?</p>
+            <p style={{ color: C.textMid, fontSize: '0.85rem' }}>Notre équipe est disponible pour vous aider.</p>
+          </div>
+          <a href="mailto:contact@miseendemeurerapide.fr" style={{ background: C.accent, color: C.textDark, padding: '0.75rem 1.5rem', borderRadius: '8px', fontFamily: F, fontWeight: 700, fontSize: '0.875rem', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            Nous contacter
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /* ── FAQ item ────────────────────────────────────────────────── */
 const FAQ = ({ q, a }) => {
@@ -1046,9 +1107,11 @@ export default function App() {
 
   if (view === 'form')    return <FormPage onBack={() => setView('home')} />;
   if (view === 'capture') return <EmailCapture onBack={() => setView('home')} onLegal={p => setView(p)} />;
+  if (view === 'faq')     return <FAQPage onBack={() => { setView('home'); window.scrollTo(0,0); }} onGo={() => { setView('form'); window.scrollTo(0,0); }} />;
   if (['mentions', 'confidentialite', 'cgu'].includes(view)) return <LegalPage page={view} onBack={() => setView('home')} />;
 
-  const go = () => { setView('form'); window.scrollTo(0, 0); };
+  const go    = () => { setView('form'); window.scrollTo(0, 0); };
+  const goFaq = () => { setView('faq');  window.scrollTo(0, 0); };
 
   /* ── Shared styles ── */
   const container = {
@@ -1142,18 +1205,7 @@ export default function App() {
     },
   ];
 
-  const faqs = [
-    { q: "Combien ça coûte ?", a: "19,99€ tout compris. Ce prix inclut la rédaction personnalisée de votre mise en demeure avec les références juridiques adaptées, ainsi que l'envoi par lettre recommandée avec accusé de réception. Aucun frais caché." },
-    { q: "Quelle est la différence entre une mise en demeure et une simple lettre de réclamation ?", a: "Une lettre de réclamation est un courrier informel sans portée juridique particulière. La mise en demeure, elle, est encadrée par les articles 1344 et suivants du Code civil. Elle fait courir les intérêts de retard (article 1344-1), constitue une preuve de votre démarche amiable et représente souvent un préalable obligatoire avant toute action en justice." },
-    { q: "Est-ce juridiquement valide ?", a: "Oui. Chaque mise en demeure est rédigée en conformité avec le droit français (articles 1344 et suivants du Code civil). L'envoi en recommandé avec AR lui confère une valeur probante devant les tribunaux." },
-    { q: "Dois-je passer par un avocat ?", a: "Non. Toute personne physique ou morale peut envoyer une mise en demeure. Ce n'est pas un acte réservé aux avocats ni aux professionnels du droit. Notre service vous aide à rédiger un courrier conforme et à l'envoyer dans les règles, sans intermédiaire juridique." },
-    { q: "Quels types de litiges sont couverts ?", a: "Loyer impayé, dépôt de garantie non restitué, produit non livré ou défectueux, facture impayée, travaux inachevés, vice caché, résiliation de contrat, et bien d'autres situations du quotidien." },
-    { q: "Comment se passe l'envoi en recommandé ?", a: "Vous n'avez rien à faire. Une fois votre mise en demeure validée, nous nous chargeons de l'impression et de l'envoi en lettre recommandée avec accusé de réception via La Poste." },
-    { q: "Que se passe-t-il si l'autre partie ne répond pas ?", a: "Si votre mise en demeure reste sans réponse dans le délai fixé (entre 8 et 15 jours), vous êtes en droit de saisir le tribunal compétent. L'accusé de réception prouve votre tentative de résolution amiable, souvent exigée par les juges." },
-    { q: "Les intérêts de retard courent-ils à partir de la mise en demeure ?", a: "Oui. Conformément à l'article 1344-1 du Code civil, les intérêts moratoires commencent à courir à compter de la réception de la mise en demeure, au taux légal en vigueur." },
-    { q: "Puis-je voir ma mise en demeure avant l'envoi ?", a: "Oui. Votre mise en demeure vous est présentée avant tout paiement. Vous pouvez la relire et vérifier les informations avant de valider." },
-    { q: "Est-ce que votre service constitue une consultation juridique ?", a: "Non. Notre service est un outil d'aide à la rédaction et à l'envoi de mises en demeure. Il ne constitue ni une consultation juridique ni un conseil personnalisé au sens de la loi du 31 décembre 1971. Pour les situations complexes, consultez un avocat." },
-  ];
+  const faqs = faqsData;
 
   /* ── Render ── */
   return (
@@ -1168,18 +1220,18 @@ export default function App() {
           gap: '2.5rem',
         }}>
           {[
-            { label: 'Comment ça marche', href: '#comment-ca-marche' },
-            { label: 'Témoignages', href: '#temoignages' },
-            { label: 'FAQ', href: '#faq' },
-          ].map(({ label, href }) => (
-            <a key={label} href={href} onClick={() => setMenuOpen(false)} style={{
-              fontFamily: F, fontSize: '2rem', color: C.textDark, fontWeight: 600,
-              textDecoration: 'none', transition: 'color 0.2s',
+            { label: 'Comment ça marche', action: () => { setMenuOpen(false); document.getElementById('comment-ca-marche')?.scrollIntoView({ behavior: 'smooth' }); } },
+            { label: 'Témoignages',        action: () => { setMenuOpen(false); document.getElementById('temoignages')?.scrollIntoView({ behavior: 'smooth' }); } },
+            { label: 'FAQ',                action: () => { setMenuOpen(false); goFaq(); } },
+          ].map(({ label, action }) => (
+            <button key={label} onClick={action} style={{
+              background: 'none', border: 'none', fontFamily: F, fontSize: '2rem', color: C.textDark, fontWeight: 600,
+              cursor: 'pointer', transition: 'color 0.2s', padding: 0,
             }}
             onMouseEnter={e => e.currentTarget.style.color = C.accent}
             onMouseLeave={e => e.currentTarget.style.color = C.textDark}>
               {label}
-            </a>
+            </button>
           ))}
           <button onClick={() => { go(); setMenuOpen(false); }} style={{
             background: C.accent, color: C.primary, padding: '1rem 2.5rem',
@@ -1395,6 +1447,20 @@ export default function App() {
                     </div>
                   ))}
                 </div>
+
+                <button onClick={goFaq} style={{
+                  marginTop: '2rem', alignSelf: 'flex-start',
+                  background: 'none', border: 'none', padding: 0,
+                  fontFamily: F, fontSize: '0.875rem', fontWeight: 600,
+                  color: C.accent, cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                  transition: 'gap 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.gap = '0.6rem'; }}
+                onMouseLeave={e => { e.currentTarget.style.gap = '0.35rem'; }}>
+                  En savoir plus
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
               </div>
 
               {/* Droite — illustration */}
@@ -1552,7 +1618,7 @@ export default function App() {
 
       <div style={{ height: '160px', background: `linear-gradient(to bottom, ${C.bgAlt}, ${C.bg})` }} />
       {/* ── EFFICACITÉ ── */}
-      <section id="efficacite" style={{ background: C.bg, paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
+      <section id="efficacite" style={{ background: C.bg, paddingTop: 0, paddingBottom: 'clamp(3.5rem, 8vw, 7rem)', paddingLeft: 0, paddingRight: 0 }}>
         
         <div style={container}>
           <Reveal>
@@ -1571,7 +1637,7 @@ export default function App() {
             <Reveal delay={100} style={{ display: 'flex' }}>
               <div style={{ background: C.white, border: `1px solid ${C.borderLight}`, borderRadius: '10px', padding: '2.25rem 2rem', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', flex: 1 }}>
                 <div style={{ fontFamily: F, fontSize: '3.5rem', fontWeight: 700, color: C.accent, lineHeight: 1, marginBottom: '0.875rem' }}>
-                  <CountUp target={70} suffix="%" />
+                  70%
                 </div>
                 <p style={{ color: C.textMuted, fontSize: '0.9rem', lineHeight: 1.7 }}>
                   <strong style={{ color: C.textDark }}>des litiges se résolvent</strong> après réception d'une mise en demeure, sans passer par le tribunal.
@@ -1621,31 +1687,6 @@ export default function App() {
         </div>
       </section>
 
-      <div style={{ height: '160px', background: `linear-gradient(to bottom, ${C.bg}, ${C.bgAlt})` }} />
-
-      {/* ── FAQ ── */}
-      <section id="faq" style={{ background: C.bgAlt, paddingTop: 0, paddingBottom: 'clamp(3.5rem, 8vw, 7rem)', paddingLeft: 0, paddingRight: 0 }}>
-        
-        <div style={container}>
-          <Reveal>
-            <div style={{ textAlign: 'center', marginBottom: isMobile ? '2.5rem' : '3.5rem' }}>
-              <p style={{ color: C.accent, fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.875rem', fontFamily: F }}>
-                Vous avez des questions ?
-              </p>
-              <h2 style={{ fontFamily: F, fontSize: 'clamp(1.6rem, 3vw, 2.5rem)', fontWeight: 600, lineHeight: 1.2, color: C.textDark }}>
-                Questions fréquentes
-              </h2>
-            </div>
-          </Reveal>
-
-          <Reveal delay={80}>
-            <div style={{ maxWidth: '800px', margin: '0 auto', borderTop: `1px solid ${C.borderLight}` }}>
-              {faqs.map(f => <FAQ key={f.q} q={f.q} a={f.a} />)}
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
       {/* ── FOOTER ── */}
       <footer style={{ background: '#0B1120' }}>
         <div style={{ ...container, padding: isMobile ? '3rem 1.25rem 2rem' : '4rem 2.5rem 2rem' }}>
@@ -1681,7 +1722,7 @@ export default function App() {
                 {[
                   { label: 'Envoyer une lettre', action: () => go() },
                   { label: 'Comment ça marche', action: () => document.getElementById('comment-ca-marche')?.scrollIntoView({ behavior: 'smooth' }) },
-                  { label: 'FAQ', action: () => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }) },
+                  { label: 'FAQ', action: () => goFaq() },
                 ].map(({ label, action }) => (
                   <button key={label} onClick={action} style={{ background: 'none', border: 'none', color: '#B0AEA8', fontSize: '0.875rem', fontFamily: F, cursor: 'pointer', transition: 'color 0.2s', padding: 0, textAlign: 'left' }}
                     onMouseEnter={e => e.currentTarget.style.color = '#F0EDE8'}
