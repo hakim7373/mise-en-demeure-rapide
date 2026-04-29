@@ -1317,7 +1317,7 @@ export default function App() {
         minHeight: isMobile ? 'auto' : '100vh', display: 'flex', alignItems: 'center',
         paddingTop: isMobile ? '5rem' : '5rem',
         paddingBottom: isMobile ? '3rem' : '0',
-        background: 'radial-gradient(ellipse 80% 60% at 90% 10%, rgba(201,169,110,0.10) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 10% 90%, rgba(201,169,110,0.06) 0%, transparent 60%), #FFFFFF',
+        background: C.bg,
       }}>
         
         <div style={{ ...container, width: '100%', padding: `${isMobile ? '2rem' : 'clamp(3rem, 6vw, 5rem)'} clamp(1.25rem, 5vw, 2.5rem)` }}>
@@ -1410,39 +1410,35 @@ export default function App() {
       </section>
 
       {/* ── SOLUTION ── */}
-      <section id="solution" style={{ background: 'radial-gradient(ellipse 80% 60% at 90% 10%, rgba(201,169,110,0.10) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 10% 90%, rgba(201,169,110,0.06) 0%, transparent 60%), #FFFFFF', padding: sectionPad }}>
+      <section id="solution" style={{ background: C.bg, padding: sectionPad }}>
         <div style={container}>
           <Reveal>
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
               background: '#fff',
               borderRadius: '20px',
               boxShadow: '0 8px 48px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.04)',
               overflow: 'hidden',
-              minHeight: isMobile ? 'auto' : '440px',
+              padding: isMobile ? '2rem 1.75rem' : '2.5rem 3rem',
             }}>
-              {/* Gauche — texte */}
-              <div style={{ padding: isMobile ? '2.5rem 1.75rem' : '3.5rem 3.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <h2 style={{ fontFamily: F, fontSize: 'clamp(1.6rem, 2.8vw, 2.3rem)', fontWeight: 700, lineHeight: 1.15, color: C.textDark, marginBottom: '1rem' }}>
-                  Une solution simple<br />pour faire valoir<br />vos droits
+                <h2 style={{ fontFamily: F, fontSize: 'clamp(1.3rem, 2.2vw, 1.8rem)', fontWeight: 700, lineHeight: 1.2, color: C.textDark, marginBottom: '0.75rem' }}>
+                  Une solution simple pour faire valoir vos droits
                 </h2>
-                <p style={{ color: C.textMid, fontSize: '0.95rem', lineHeight: 1.75, marginBottom: '2rem' }}>
+                <p style={{ color: C.textMid, fontSize: '0.9rem', lineHeight: 1.65, marginBottom: '1.75rem' }}>
                   La mise en demeure est l'étape clé pour obtenir un paiement ou résoudre un litige — sans avocat.
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1rem' }}>
                   {[
                     { label: 'Valeur juridique reconnue', desc: 'Conforme aux articles 1344 et suivants du Code civil.' },
                     { label: 'Preuve opposable en justice', desc: 'Envoi en LRAR via La Poste avec accusé de réception.' },
                     { label: 'Accessible à tous, en 2 minutes', desc: 'Aucune connaissance juridique requise.' },
                   ].map(item => (
-                    <div key={item.label} style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start' }}>
+                    <div key={item.label} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
                       <div style={{ width: '20px', height: '20px', borderRadius: '6px', background: 'rgba(59,173,122,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
                         <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="#3BAD7A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </div>
                       <div>
-                        <p style={{ fontWeight: 700, color: C.textDark, fontSize: '0.9rem', marginBottom: '0.15rem' }}>{item.label}</p>
-                        <p style={{ color: C.textMid, fontSize: '0.82rem', lineHeight: 1.55 }}>{item.desc}</p>
+                        <p style={{ fontWeight: 700, color: C.textDark, fontSize: '0.875rem', marginBottom: '0.15rem' }}>{item.label}</p>
+                        <p style={{ color: C.textMid, fontSize: '0.8rem', lineHeight: 1.55 }}>{item.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -1461,19 +1457,13 @@ export default function App() {
                   En savoir plus
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
-              </div>
-
-              {/* Droite — illustration */}
-              {!isMobile && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
-              )}
             </div>
           </Reveal>
         </div>
       </section>
 
       {/* ── FEATURES 2×2 ── */}
-      <section id="avantages" style={{ background: C.bg, paddingTop: 'clamp(3.5rem, 8vw, 7rem)', paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
+      <section id="avantages" style={{ background: C.bg, padding: sectionPad }}>
         
         <div style={container}>
           <Reveal>
@@ -1532,9 +1522,8 @@ export default function App() {
         </div>
       </section>
 
-      <div style={{ height: '160px', background: `linear-gradient(to bottom, ${C.bg}, ${C.bgAlt})` }} />
       {/* ── COMMENT ÇA MARCHE ── */}
-      <section id="comment-ca-marche" style={{ background: C.bgAlt, paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
+      <section id="comment-ca-marche" style={{ background: C.bg, padding: sectionPad }}>
         
         <div style={container}>
           <Reveal>
@@ -1616,9 +1605,8 @@ export default function App() {
         </div>
       </section>
 
-      <div style={{ height: '160px', background: `linear-gradient(to bottom, ${C.bgAlt}, ${C.bg})` }} />
       {/* ── EFFICACITÉ ── */}
-      <section id="efficacite" style={{ background: C.bg, paddingTop: 0, paddingBottom: 'clamp(3.5rem, 8vw, 7rem)', paddingLeft: 0, paddingRight: 0 }}>
+      <section id="efficacite" style={{ background: C.bg, padding: sectionPad }}>
         
         <div style={container}>
           <Reveal>
