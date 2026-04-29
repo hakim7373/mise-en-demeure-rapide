@@ -1426,7 +1426,7 @@ export default function App() {
                 <p style={{ color: C.textMid, fontSize: '0.9rem', lineHeight: 1.65, marginBottom: '1.75rem' }}>
                   La mise en demeure est l'étape clé pour obtenir un paiement ou résoudre un litige — sans avocat.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {[
                     { label: 'Valeur juridique reconnue', desc: 'Conforme aux articles 1344 et suivants du Code civil.' },
                     { label: 'Preuve opposable en justice', desc: 'Envoi en LRAR via La Poste avec accusé de réception.' },
