@@ -238,6 +238,148 @@ const faqsData = [
 ];
 
 /* ── Page FAQ dédiée ─────────────────────────────────────────── */
+/* ── Login Page ─────────────────────────────────────────────── */
+const LoginPage = ({ onBack }) => {
+  const isMobile = useIsMobile();
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [showPwd, setShowPwd]   = useState(false);
+  const [focused, setFocused]   = useState(null);
+
+  const fieldStyle = (name) => ({
+    width: '100%', boxSizing: 'border-box',
+    padding: '0.875rem 1rem',
+    borderRadius: '10px',
+    border: `1.5px solid ${focused === name ? C.accent : C.borderLight}`,
+    fontFamily: F, fontSize: '0.9rem', color: C.textDark,
+    background: '#fff', outline: 'none',
+    transition: 'border-color 0.2s',
+  });
+
+  return (
+    <div style={{ minHeight: '100vh', background: C.bgAlt, fontFamily: F, display: 'flex', flexDirection: 'column' }}>
+      {/* Top bar */}
+      <div style={{ padding: '1.25rem clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: 0 }}>
+          <img src="/LOGO.png" alt="Logo" style={{ height: '1.75rem', width: 'auto' }} />
+          {!isMobile && (
+            <span style={{ fontFamily: F, fontWeight: 700, color: C.textDark, fontSize: '0.975rem', display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+              <span>Mise en Demeure</span>
+              <span style={{ color: C.accent, fontSize: '0.72rem', letterSpacing: '0.04em' }}>rapide.fr</span>
+            </span>
+          )}
+        </button>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', color: C.textMid, fontFamily: F, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem', padding: 0, opacity: 0.6, transition: 'opacity 0.2s' }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
+          ← Retour
+        </button>
+      </div>
+
+      {/* Center form */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem 1.25rem 5rem' }}>
+        <div style={{ width: '100%', maxWidth: '440px' }}>
+
+          {/* Card */}
+          <div style={{
+            background: '#fff', borderRadius: '20px',
+            padding: isMobile ? '2.25rem 1.75rem 2.5rem' : '3rem 2.75rem',
+            boxShadow: '0 8px 48px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
+          }}>
+            <p style={{ color: C.accent, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '0.7rem' }}>
+              Espace personnel
+            </p>
+            <h1 style={{ fontFamily: F, fontSize: '1.75rem', fontWeight: 700, color: C.textDark, marginBottom: '0.4rem', lineHeight: 1.2 }}>
+              Connexion
+            </h1>
+            <p style={{ color: C.textMid, fontSize: '0.875rem', marginBottom: '2.25rem', lineHeight: 1.65, opacity: 0.55 }}>
+              Retrouvez vos lettres et suivez vos dossiers.
+            </p>
+
+            {/* Email */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem', letterSpacing: '0.02em' }}>
+                Adresse e-mail
+              </label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                onFocus={() => setFocused('email')} onBlur={() => setFocused(null)}
+                placeholder="vous@example.com" style={fieldStyle('email')} />
+            </div>
+
+            {/* Password */}
+            <div style={{ marginBottom: '0.5rem' }}>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem', letterSpacing: '0.02em' }}>
+                Mot de passe
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+                  onFocus={() => setFocused('pwd')} onBlur={() => setFocused(null)}
+                  placeholder="••••••••" style={{ ...fieldStyle('pwd'), paddingRight: '3rem' }} />
+                <button type="button" onClick={() => setShowPwd(v => !v)} style={{
+                  position: 'absolute', right: '0.9rem', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#aaa',
+                  display: 'flex', alignItems: 'center', transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = C.textDark}
+                onMouseLeave={e => e.currentTarget.style.color = '#aaa'}>
+                  {showPwd
+                    ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  }
+                </button>
+              </div>
+            </div>
+
+            {/* Forgot */}
+            <div style={{ textAlign: 'right', marginBottom: '1.75rem' }}>
+              <button style={{ background: 'none', border: 'none', color: C.accent, fontFamily: F, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', padding: 0 }}>
+                Mot de passe oublié ?
+              </button>
+            </div>
+
+            {/* CTA */}
+            <button style={{
+              width: '100%', padding: '0.9rem',
+              borderRadius: '10px', border: 'none',
+              background: C.primary, color: '#fff',
+              fontFamily: F, fontWeight: 700, fontSize: '0.925rem',
+              cursor: 'pointer', transition: 'all 0.2s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+              letterSpacing: '0.01em',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = C.secondary; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = C.primary;   e.currentTarget.style.transform = 'none'; }}>
+              Se connecter
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+
+            {/* Divider */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '1.75rem 0' }}>
+              <div style={{ flex: 1, height: '1px', background: C.borderLight }} />
+              <span style={{ fontSize: '0.72rem', color: '#bbb', fontWeight: 500, letterSpacing: '0.06em' }}>OU</span>
+              <div style={{ flex: 1, height: '1px', background: C.borderLight }} />
+            </div>
+
+            {/* Sign up */}
+            <p style={{ textAlign: 'center', fontSize: '0.875rem', color: C.textMid, margin: 0 }}>
+              Pas encore de compte ?{' '}
+              <button style={{ background: 'none', border: 'none', color: C.textDark, fontFamily: F, fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', padding: 0, borderBottom: `1.5px solid ${C.accent}` }}>
+                Créer un compte
+              </button>
+            </p>
+          </div>
+
+          {/* Trust */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <span style={{ fontSize: '0.72rem', color: '#aaa', letterSpacing: '0.04em' }}>Connexion sécurisée · Données chiffrées</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const FAQPage = ({ onBack, onGo }) => {
   const isMobile = useIsMobile();
   return (
@@ -1108,10 +1250,12 @@ export default function App() {
   if (view === 'form')    return <FormPage onBack={() => setView('home')} />;
   if (view === 'capture') return <EmailCapture onBack={() => setView('home')} onLegal={p => setView(p)} />;
   if (view === 'faq')     return <FAQPage onBack={() => { setView('home'); window.scrollTo(0,0); }} onGo={() => { setView('form'); window.scrollTo(0,0); }} />;
+  if (view === 'login')   return <LoginPage onBack={() => { setView('home'); window.scrollTo(0,0); }} />;
   if (['mentions', 'confidentialite', 'cgu'].includes(view)) return <LegalPage page={view} onBack={() => setView('home')} />;
 
-  const go    = () => { setView('form'); window.scrollTo(0, 0); };
-  const goFaq = () => { setView('faq');  window.scrollTo(0, 0); };
+  const go      = () => { setView('form');  window.scrollTo(0, 0); };
+  const goFaq   = () => { setView('faq');   window.scrollTo(0, 0); };
+  const goLogin = () => { setView('login'); window.scrollTo(0, 0); };
 
   /* ── Shared styles ── */
   const container = {
@@ -1223,6 +1367,7 @@ export default function App() {
             { label: 'Comment ça marche', action: () => { setMenuOpen(false); document.getElementById('comment-ca-marche')?.scrollIntoView({ behavior: 'smooth' }); } },
             { label: 'Témoignages',        action: () => { setMenuOpen(false); document.getElementById('temoignages')?.scrollIntoView({ behavior: 'smooth' }); } },
             { label: 'FAQ',                action: () => { setMenuOpen(false); goFaq(); } },
+            { label: 'Se connecter',       action: () => { setMenuOpen(false); goLogin(); } },
           ].map(({ label, action }) => (
             <button key={label} onClick={action} style={{
               background: 'none', border: 'none', fontFamily: F, fontSize: '2rem', color: C.textDark, fontWeight: 600,
@@ -1287,14 +1432,14 @@ export default function App() {
                 </svg>
                 Gérer mon abonnement
               </button>
-              <button onClick={go} style={{
-                background: C.accent, color: C.textDark, padding: '0.6rem 1.25rem',
-                borderRadius: '8px', border: `2px solid ${C.accent}`, fontFamily: F, fontWeight: 700, fontSize: '0.875rem',
-                cursor: 'pointer', transition: 'all 0.3s', boxShadow: '0 4px 16px rgba(201,168,76,0.25)',
+              <button onClick={goLogin} style={{
+                background: C.primary, color: '#fff', padding: '0.6rem 1.25rem',
+                borderRadius: '8px', border: `2px solid ${C.primary}`, fontFamily: F, fontWeight: 700, fontSize: '0.875rem',
+                cursor: 'pointer', transition: 'all 0.2s',
                 display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = C.accentHover; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = C.accent; e.currentTarget.style.transform = 'translateY(0)'; }}>
+              onMouseEnter={e => { e.currentTarget.style.background = C.secondary; e.currentTarget.style.borderColor = C.secondary; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = C.primary; e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.transform = 'translateY(0)'; }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                 Se connecter
               </button>
