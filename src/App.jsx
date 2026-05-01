@@ -2053,7 +2053,7 @@ export default function App() {
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = C.accentHover; e.currentTarget.style.borderColor = C.accentHover; }}
                   onMouseLeave={e => { e.currentTarget.style.background = C.accent; e.currentTarget.style.borderColor = C.accent; }}>
-                    Envoyer une lettre
+                    Contactez-nous
                   </button>
                   <button onClick={goLogin} style={{
                     background: C.primary, color: '#fff', padding: '0.6rem 1.25rem',
@@ -2477,7 +2477,7 @@ export default function App() {
               <p style={{ fontFamily: F, fontWeight: 700, fontSize: '0.8rem', color: '#F0EDE8', marginBottom: '1.25rem' }}>Produit</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
                 {[
-                  { label: 'Envoyer une lettre', action: () => go() },
+                  { label: 'Contactez-nous', action: () => go() },
                   { label: 'Comment ça marche', action: () => document.getElementById('comment-ca-marche')?.scrollIntoView({ behavior: 'smooth' }) },
                   { label: 'FAQ', action: () => goFaq() },
                 ].map(({ label, action }) => (
