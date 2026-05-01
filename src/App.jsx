@@ -1462,6 +1462,284 @@ const ContactPage = ({ onBack }) => {
   );
 };
 
+/* ── Page Suivi Lettre ──────────────────────────────────────── */
+const TrackingPage = ({ onBack }) => {
+  const isMobile = useIsMobile();
+  const [input, setInput]     = useState('');
+  const [lettre, setLettre]   = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+
+  const litigeLabel = { facture: 'Facture impayée', loyer: 'Loyer impayé', caution: 'Caution non restituée', travaux: 'Travaux mal réalisés', remboursement: 'Remboursement', autre: 'Autre' };
+
+  const search = async (e) => {
+    e?.preventDefault();
+    if (!input.trim()) return;
+    setLoading(true); setNotFound(false); setLettre(null);
+    const { data } = await supabase
+      .from('lettres')
+      .select('*')
+      .eq('tracking_id', input.trim().replace('#', '').toUpperCase())
+      .neq('statut', 'brouillon')
+      .single();
+    setLoading(false);
+    if (data) setLettre(data);
+    else setNotFound(true);
+  };
+
+  const steps = lettre ? [
+    { label: 'Lettre générée',              sub: lettre.created_at ? new Date(lettre.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null, done: true },
+    { label: 'Paiement confirmé',           sub: lettre.paid_at ? new Date(lettre.paid_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'En attente', done: !!lettre.paid_at },
+    { label: 'Envoi lettre recommandée AR', sub: lettre.sent_at ? new Date(lettre.sent_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'En cours de traitement', done: !!lettre.sent_at },
+    { label: 'Accusé de réception signé',  sub: lettre.delivered_at ? new Date(lettre.delivered_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'En attente de signature', done: !!lettre.delivered_at },
+  ] : [];
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: F }}>
+      <AuthTopBar onBack={onBack} />
+
+      <div style={{ maxWidth: '620px', margin: '0 auto', padding: isMobile ? '3rem 1.5rem 5rem' : '5rem 2rem 7rem' }}>
+        <p style={{ color: C.accent, fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '1rem' }}>Suivi</p>
+        <h1 style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.6rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.75rem', lineHeight: 1.15 }}>
+          Suivre ma lettre recommandée
+        </h1>
+        <p style={{ color: C.textMid, fontSize: '1rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
+          Entrez votre numéro de suivi reçu par email après le paiement.
+        </p>
+
+        {/* Formulaire de recherche */}
+        <form onSubmit={search} style={{ display: 'flex', gap: '0.75rem', marginBottom: '2.5rem', flexDirection: isMobile ? 'column' : 'row' }}>
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="Ex : A1B2C3D4"
+            style={{ flex: 1, padding: '0.9rem 1.1rem', borderRadius: '10px', border: `1.5px solid ${C.borderLight}`, fontFamily: F, fontSize: '1rem', color: C.textDark, background: '#fff', outline: 'none', letterSpacing: '0.05em', transition: 'border-color 0.2s' }}
+            onFocus={e => e.target.style.borderColor = C.accent}
+            onBlur={e => e.target.style.borderColor = C.borderLight}
+          />
+          <button type="submit" disabled={loading} style={{ padding: '0.9rem 1.75rem', borderRadius: '10px', background: C.primary, color: '#fff', border: 'none', fontFamily: F, fontWeight: 700, fontSize: '0.95rem', cursor: loading ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', transition: 'opacity 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+            {loading ? 'Recherche…' : 'Rechercher'}
+          </button>
+        </form>
+
+        {/* Résultat non trouvé */}
+        {notFound && (
+          <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '12px', padding: '1.25rem 1.5rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '1px' }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>
+              <p style={{ fontWeight: 700, color: '#DC2626', fontSize: '0.9rem', marginBottom: '0.25rem' }}>Numéro introuvable</p>
+              <p style={{ color: '#B91C1C', fontSize: '0.85rem' }}>Vérifiez votre email de confirmation ou réessayez sans le symbole #.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Résultat trouvé */}
+        {lettre && (
+          <div style={{ background: '#fff', borderRadius: '16px', border: `1px solid ${C.borderLight}`, overflow: 'hidden', boxShadow: '0 4px 32px rgba(0,0,0,0.06)' }}>
+            {/* En-tête */}
+            <div style={{ padding: '1.5rem', borderBottom: `1px solid ${C.borderLight}`, background: C.primary }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.3rem' }}>Destinataire</p>
+                  <p style={{ color: '#fff', fontWeight: 700, fontSize: '1.05rem' }}>{lettre.destinataire_nom}</p>
+                  <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.825rem', marginTop: '0.2rem' }}>{litigeLabel[lettre.litige] || lettre.litige}{lettre.montant ? ` · ${Number(lettre.montant).toLocaleString('fr-FR')} €` : ''}</p>
+                </div>
+                <span style={{ fontFamily: 'monospace', background: 'rgba(255,255,255,0.1)', color: C.accent, fontSize: '0.8rem', fontWeight: 700, padding: '0.3rem 0.75rem', borderRadius: '8px', letterSpacing: '0.08em' }}>
+                  #{lettre.tracking_id}
+                </span>
+              </div>
+            </div>
+
+            {/* Timeline */}
+            <div style={{ padding: '1.75rem 1.5rem' }}>
+              {steps.map((step, i, arr) => (
+                <div key={step.label} style={{ display: 'flex', gap: '1rem', marginBottom: i < arr.length - 1 ? '0' : '0' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: step.done ? C.accent : '#F0EDE8', border: `2px solid ${step.done ? C.accent : C.borderLight}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {step.done
+                        ? <svg width="11" height="11" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        : <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: C.borderLight }} />}
+                    </div>
+                    {i < arr.length - 1 && <div style={{ width: '2px', background: step.done ? C.accent : C.borderLight, flex: 1, minHeight: '36px', margin: '4px 0', opacity: step.done ? 0.35 : 1 }} />}
+                  </div>
+                  <div style={{ paddingBottom: i < arr.length - 1 ? '1.25rem' : 0 }}>
+                    <p style={{ fontWeight: step.done ? 700 : 500, color: step.done ? C.textDark : '#BBB', fontSize: '0.9rem', marginBottom: '0.2rem' }}>{step.label}</p>
+                    <p style={{ fontSize: '0.8rem', color: step.done ? C.textMid : '#DDD' }}>{step.sub}</p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Lien La Poste */}
+              {lettre.laposte_tracking && (
+                <a href={`https://www.laposte.fr/outils/suivre-vos-envois?code=${lettre.laposte_tracking}`} target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem', background: C.bgAlt, border: `1px solid ${C.borderLight}`, padding: '0.7rem 1.1rem', borderRadius: '8px', fontFamily: F, fontSize: '0.85rem', fontWeight: 600, color: C.textDark, textDecoration: 'none', transition: 'border-color 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = C.accent}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = C.borderLight}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  Suivre sur La Poste · {lettre.laposte_tracking}
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Info */}
+        {!lettre && !notFound && (
+          <div style={{ marginTop: '2rem', padding: '1.25rem 1.5rem', background: '#fff', borderRadius: '12px', border: `1px solid ${C.borderLight}`, display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '2px' }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p style={{ color: C.textMid, fontSize: '0.85rem', lineHeight: 1.65 }}>Votre numéro de suivi vous a été envoyé par email après la confirmation du paiement. Il se présente sous la forme d'une suite de lettres et chiffres.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ── Page Tarification ──────────────────────────────────────── */
+const PricingPage = ({ onBack, onGo, onLogin }) => {
+  const isMobile = useIsMobile();
+
+  const plans = [
+    {
+      name: 'One-shot',
+      price: '19,99',
+      period: 'par lettre',
+      tag: null,
+      desc: 'Idéal pour un litige ponctuel. Payez uniquement quand vous en avez besoin.',
+      cta: 'Envoyer ma lettre',
+      ctaAction: onGo,
+      highlight: false,
+      features: [
+        'Rédaction personnalisée par IA',
+        'Références juridiques incluses',
+        'Envoi LRAR certifié via AR24',
+        'Accusé de réception inclus',
+        'Suivi en temps réel',
+        'Valeur juridique reconnue',
+      ],
+    },
+    {
+      name: 'Pro',
+      price: '49,99',
+      period: 'par mois',
+      tag: 'Bientôt disponible',
+      desc: 'Pour les professionnels et les entreprises qui gèrent plusieurs dossiers.',
+      cta: 'Être notifié',
+      ctaAction: onLogin,
+      highlight: true,
+      features: [
+        'Lettres illimitées',
+        'Tableau de bord multi-dossiers',
+        'Modèles personnalisés',
+        'Envoi LRAR certifié via AR24',
+        'Accusé de réception inclus',
+        'Support prioritaire',
+        'Export PDF & historique',
+        'Facturation mensuelle ou annuelle',
+      ],
+    },
+  ];
+
+  const CheckIcon = () => (
+    <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'rgba(59,173,122,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="#3BAD7A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: F }}>
+      <AuthTopBar onBack={onBack} />
+
+      {/* Hero */}
+      <div style={{ textAlign: 'center', padding: isMobile ? '3rem 1.5rem 2rem' : '5rem 2rem 3rem' }}>
+        <p style={{ color: C.accent, fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '1rem' }}>Tarifs</p>
+        <h1 style={{ fontFamily: F, fontSize: 'clamp(2rem, 4vw, 3.2rem)', fontWeight: 700, color: C.textDark, marginBottom: '1rem', lineHeight: 1.15 }}>
+          Simple, transparent, sans surprise
+        </h1>
+        <p style={{ color: C.textMid, fontSize: '1.05rem', lineHeight: 1.7, maxWidth: '500px', margin: '0 auto' }}>
+          Aucun abonnement forcé. Payez uniquement ce dont vous avez besoin.
+        </p>
+      </div>
+
+      {/* Cards */}
+      <div style={{ maxWidth: '860px', margin: '0 auto', padding: isMobile ? '1rem 1.25rem 4rem' : '1rem 2rem 6rem', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
+        {plans.map(plan => (
+          <div key={plan.name} style={{
+            background: plan.highlight ? C.primary : '#fff',
+            borderRadius: '20px',
+            padding: '2.5rem',
+            boxShadow: plan.highlight ? '0 20px 60px rgba(26,26,46,0.25)' : '0 4px 32px rgba(0,0,0,0.07)',
+            border: plan.highlight ? 'none' : `1px solid ${C.borderLight}`,
+            position: 'relative',
+          }}>
+            {plan.tag && (
+              <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: C.accent, color: C.textDark, fontSize: '0.7rem', fontWeight: 700, padding: '0.3rem 0.75rem', borderRadius: '99px', letterSpacing: '0.04em' }}>
+                {plan.tag}
+              </div>
+            )}
+
+            <p style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: plan.highlight ? C.accent : C.textMuted, marginBottom: '0.75rem' }}>{plan.name}</p>
+
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.3rem', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: 'clamp(2.5rem, 5vw, 3.5rem)', fontWeight: 800, color: plan.highlight ? '#fff' : C.textDark, lineHeight: 1 }}>{plan.price}€</span>
+              <span style={{ fontSize: '0.9rem', color: plan.highlight ? 'rgba(255,255,255,0.5)' : C.textMuted, marginBottom: '0.4rem' }}>/ {plan.period}</span>
+            </div>
+
+            <p style={{ color: plan.highlight ? 'rgba(255,255,255,0.65)' : C.textMid, fontSize: '0.875rem', lineHeight: 1.65, marginBottom: '2rem' }}>{plan.desc}</p>
+
+            <button
+              onClick={plan.ctaAction}
+              style={{
+                width: '100%', padding: '0.9rem', borderRadius: '10px', border: 'none',
+                fontFamily: F, fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
+                background: plan.highlight ? C.accent : C.primary,
+                color: plan.highlight ? C.textDark : '#fff',
+                marginBottom: '2rem', transition: 'opacity 0.2s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            >
+              {plan.cta}
+            </button>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              {plan.features.map(f => (
+                <div key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <CheckIcon />
+                  <span style={{ fontSize: '0.875rem', color: plan.highlight ? 'rgba(255,255,255,0.8)' : C.textMid }}>{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Garantie */}
+      <div style={{ background: '#fff', borderTop: `1px solid ${C.borderLight}`, padding: isMobile ? '2.5rem 1.5rem' : '3rem 2rem', textAlign: 'center' }}>
+        <div style={{ maxWidth: '560px', margin: '0 auto' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(201,169,110,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 style={{ fontFamily: F, fontSize: '1.2rem', fontWeight: 700, color: C.textDark, marginBottom: '0.75rem' }}>Paiement 100% sécurisé</h3>
+          <p style={{ color: C.textMid, fontSize: '0.9rem', lineHeight: 1.7 }}>Vos paiements sont traités par Stripe, la référence mondiale en matière de sécurité des transactions en ligne. Aucune donnée bancaire n'est stockée sur nos serveurs.</p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+            {[{ src: '/Visa.png', alt: 'Visa' }, { src: '/Mastercard-logo.png', alt: 'Mastercard' }, { src: '/CB LOGO.jpg', alt: 'CB' }].map(({ src, alt }) => (
+              <div key={alt} style={{ background: '#F5F5F3', borderRadius: '6px', padding: '5px 10px', height: '32px', width: '52px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src={src} alt={alt} style={{ maxHeight: '18px', maxWidth: '40px', objectFit: 'contain' }} />
+              </div>
+            ))}
+            <div style={{ background: '#F5F5F3', borderRadius: '6px', padding: '5px 10px', height: '32px', width: '52px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#635BFF' }}>stripe</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ── Pages légales ──────────────────────────────────────────── */
 const LegalPage = ({ page, onBack }) => {
   const isMobile = useIsMobile();
@@ -2000,6 +2278,8 @@ export default function App() {
 
   if (view === 'form')            return <FormPage onBack={() => nav('home')} user={user} />;
   if (view === 'contact')         return <ContactPage onBack={() => nav('home')} />;
+  if (view === 'pricing')         return <PricingPage onBack={() => nav('home')} onGo={() => nav('form')} onLogin={() => nav('login')} />;
+  if (view === 'tracking')        return <TrackingPage onBack={() => nav('home')} />;
   if (view === 'faq')             return <FAQPage onBack={() => nav('home')} onGo={() => nav('form')} />;
   if (view === 'login')           return <LoginPage onBack={() => nav('home')} onRegister={() => nav('register')} onForgot={() => nav('forgot-password')} onSuccess={() => nav(user ? 'dashboard' : 'home')} />;
   if (view === 'register')        return <RegisterPage onBack={() => nav('home')} onLogin={() => nav('login')} onSuccess={() => nav('login')} />;
@@ -2607,6 +2887,8 @@ export default function App() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
                 {[
                   { label: 'Accueil', action: () => nav('home') },
+                  { label: 'Tarifs', action: () => nav('pricing') },
+                  { label: 'Suivre ma lettre', action: () => nav('tracking') },
                   { label: 'Comment ça marche', action: () => document.getElementById('comment-ca-marche')?.scrollIntoView({ behavior: 'smooth' }) },
                   { label: 'FAQ', action: () => goFaq() },
                   { label: 'Contactez-nous', action: () => nav('contact') },
