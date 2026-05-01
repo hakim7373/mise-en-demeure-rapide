@@ -1968,7 +1968,7 @@ const DashboardPage = ({ user, onBack, onNewLettre }) => {
     <div style={{ minHeight: '100vh', background: C.bgAlt, fontFamily: F }}>
       {/* Header */}
       <div style={{ background: '#fff', borderBottom: `1px solid ${C.borderLight}`, position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: '1000px', margin: '0', padding: '1rem clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ width: '100%', boxSizing: 'border-box', padding: '1rem clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: 0 }}>
             <img src="/LOGO.png" alt="Logo" style={{ height: '1.75rem', width: 'auto' }} />
             {!isMobile && (
@@ -1990,7 +1990,7 @@ const DashboardPage = ({ user, onBack, onNewLettre }) => {
         </div>
 
         {/* Tabs */}
-        <div style={{ maxWidth: '1000px', margin: '0', padding: '0 clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', gap: 0, overflowX: 'auto' }}>
+        <div style={{ width: '100%', boxSizing: 'border-box', padding: '0 clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', gap: 0, overflowX: 'auto' }}>
           {tabs.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               background: 'none', border: 'none', borderBottom: `2px solid ${tab === t.id ? C.accent : 'transparent'}`,
