@@ -855,9 +855,11 @@ const IlluRelance = () => (
 );
 
 /* ── Form multi-étapes ──────────────────────────────────────── */
-const FormPage = ({ onBack }) => {
+const FormPage = ({ onBack, user }) => {
   const isMobile = useIsMobile();
   const [step, setStep] = useState(1);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError]     = useState('');
   const [data, setData] = useState({
     litige: '',
     expediteurType: '',
@@ -874,6 +876,7 @@ const FormPage = ({ onBack }) => {
     dateFait: '',
     delai: '15',
     description: '',
+    email: user?.email || '',
   });
 
   const update = (k, v) => setData(d => ({ ...d, [k]: v }));
@@ -949,6 +952,7 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
     if (step === 1) return !!data.litige;
     if (step === 2) return data.expediteurType && data.expediteurNom && data.expediteurAdresse && data.expediteurCP && data.expediteurVille;
     if (step === 3) return data.destinataireType && data.destinataireNom && data.destinataireAdresse && data.destinataireCP && data.destinataireVille;
+    if (step === 4) return !!(data.email && data.email.includes('@'));
     return true;
   };
 
@@ -1161,6 +1165,19 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
                   onFocus={e => e.target.style.borderColor = C.accent}
                   onBlur={e => e.target.style.borderColor = C.borderLight} />
               </div>
+
+              {/* Email pour recevoir le suivi */}
+              <div style={{ borderTop: `1px solid ${C.borderLight}`, paddingTop: '1.25rem', marginTop: '0.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: C.textDark, marginBottom: '0.4rem' }}>
+                  Votre adresse e-mail <span style={{ color: '#EF4444' }}>*</span>
+                  <span style={{ fontWeight: 400, color: C.textMuted, marginLeft: '0.4rem' }}>— pour recevoir votre numéro de suivi</span>
+                </label>
+                <input style={inputStyle} type="email" value={data.email || ''}
+                  onChange={e => update('email', e.target.value)}
+                  placeholder="vous@example.com"
+                  onFocus={e => e.target.style.borderColor = C.accent}
+                  onBlur={e => e.target.style.borderColor = C.borderLight} />
+              </div>
             </div>
           </div>
         )}
@@ -1235,17 +1252,40 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
             </div>
 
             {/* CTA paiement */}
-            <button style={{
-              width: '100%', background: C.accent, border: `2px solid ${C.accent}`,
-              padding: '1.1rem 2rem', borderRadius: '10px', fontFamily: F, fontWeight: 700,
-              fontSize: '1.05rem', color: C.textDark, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
-              boxShadow: '0 4px 24px rgba(201,169,110,0.3)', transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = C.accentHover; e.currentTarget.style.borderColor = C.accentHover; }}
-            onMouseLeave={e => { e.currentTarget.style.background = C.accent; e.currentTarget.style.borderColor = C.accent; }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
-              Envoyer cette lettre — 19,99 €
+            {paymentError && (
+              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1rem', fontSize: '0.85rem', color: '#DC2626' }}>
+                {paymentError}
+              </div>
+            )}
+            <button
+              disabled={paymentLoading}
+              onClick={async () => {
+                setPaymentLoading(true); setPaymentError('');
+                try {
+                  const res = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ letterData: data, email: data.email, userId: user?.id || null }),
+                  });
+                  const { url, error } = await res.json();
+                  if (error) throw new Error(error);
+                  window.location.href = url;
+                } catch (err) {
+                  setPaymentError('Une erreur est survenue. Réessayez.');
+                  setPaymentLoading(false);
+                }
+              }}
+              style={{
+                width: '100%', background: paymentLoading ? '#999' : C.accent, border: 'none',
+                padding: '1.1rem 2rem', borderRadius: '10px', fontFamily: F, fontWeight: 700,
+                fontSize: '1.05rem', color: C.textDark, cursor: paymentLoading ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
+                boxShadow: '0 4px 24px rgba(201,169,110,0.3)', transition: 'all 0.2s',
+              }}>
+              {paymentLoading
+                ? 'Redirection vers le paiement…'
+                : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>Envoyer cette lettre — 19,99 €</>
+              }
             </button>
             <p style={{ textAlign: 'center', fontSize: '0.78rem', color: C.textMuted, marginTop: '0.75rem' }}>
               Paiement sécurisé · Envoi en LRAR via La Poste · Accusé de réception inclus
@@ -1794,7 +1834,45 @@ export default function App() {
 
   if (authLoading) return null;
 
-  if (view === 'form')            return <FormPage onBack={() => nav('home')} />;
+  // Retour depuis Stripe
+  const urlParams   = new URLSearchParams(window.location.search);
+  const paymentStatus   = urlParams.get('payment');
+  const trackingReturn  = urlParams.get('tracking');
+  if (paymentStatus === 'success' && trackingReturn) {
+    window.history.replaceState({}, '', '/');
+    return (
+      <div style={{ minHeight: '100vh', background: C.bgAlt, fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+        <div style={{ width: '100%', maxWidth: '500px', background: '#fff', borderRadius: '20px', padding: '3rem 2.5rem', boxShadow: '0 8px 48px rgba(0,0,0,0.07)', textAlign: 'center' }}>
+          <div style={{ width: '72px', height: '72px', background: '#F0FDF4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <p style={{ color: C.accent, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>Paiement confirmé</p>
+          <h1 style={{ fontFamily: F, fontSize: '1.75rem', fontWeight: 700, color: C.textDark, marginBottom: '0.75rem' }}>Votre lettre est en cours d'envoi</h1>
+          <p style={{ color: '#888', fontSize: '0.9rem', lineHeight: 1.7, marginBottom: '1.75rem' }}>
+            Vous recevrez un email de confirmation avec votre numéro de suivi.<br/>
+            Votre lettre sera envoyée en recommandé AR sous 24h ouvrées.
+          </p>
+          <div style={{ background: C.bgAlt, borderRadius: '10px', padding: '1rem', marginBottom: '2rem' }}>
+            <p style={{ fontSize: '0.75rem', color: '#888', marginBottom: '0.3rem' }}>Numéro de suivi</p>
+            <p style={{ fontFamily: 'monospace', fontWeight: 700, color: C.textDark, fontSize: '1.1rem', letterSpacing: '0.08em' }}>#{trackingReturn}</p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {user && (
+              <button onClick={() => nav('dashboard')} style={{ background: C.primary, color: '#fff', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', fontFamily: F, fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer' }}>
+                Voir dans mon espace
+              </button>
+            )}
+            <button onClick={() => nav('home')} style={{ background: 'none', color: C.textMid, padding: '0.75rem 1.5rem', borderRadius: '8px', border: `1.5px solid ${C.borderLight}`, fontFamily: F, fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer' }}>
+              Retour à l'accueil
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (paymentStatus === 'cancel') window.history.replaceState({}, '', '/');
+
+  if (view === 'form')            return <FormPage onBack={() => nav('home')} user={user} />;
   if (view === 'faq')             return <FAQPage onBack={() => nav('home')} onGo={() => nav('form')} />;
   if (view === 'login')           return <LoginPage onBack={() => nav('home')} onRegister={() => nav('register')} onForgot={() => nav('forgot-password')} onSuccess={() => nav(user ? 'dashboard' : 'home')} />;
   if (view === 'register')        return <RegisterPage onBack={() => nav('home')} onLogin={() => nav('login')} onSuccess={() => nav('login')} />;
