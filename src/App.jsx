@@ -1972,7 +1972,7 @@ const DashboardPage = ({ user, onBack, onNewLettre }) => {
           <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: 0 }}>
             <img src="/LOGO.png" alt="Logo" style={{ height: '1.75rem', width: 'auto' }} />
             {!isMobile && (
-              <span style={{ fontFamily: F, fontWeight: 700, color: C.textDark, fontSize: '0.95rem', display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+              <span style={{ fontFamily: F, fontWeight: 700, color: C.textDark, fontSize: '0.95rem', display: 'flex', flexDirection: 'column', lineHeight: 1.2, alignItems: 'flex-start' }}>
                 <span>Mise en Demeure</span>
                 <span style={{ color: C.accent, fontSize: '0.7rem', letterSpacing: '0.04em' }}>rapide.fr</span>
               </span>
