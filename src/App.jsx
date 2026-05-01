@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle, ChevronDown, FileText, Zap, Send } from 'lucide-react';
+import { supabase } from './lib/supabase';
 
 /* ── Tokens ─────────────────────────────────────────────────── */
 const F    = "'DM Sans', sans-serif";
@@ -237,143 +238,443 @@ const faqsData = [
   { q: "Est-ce que votre service constitue une consultation juridique ?", a: "Non. Notre service est un outil d'aide à la rédaction et à l'envoi de mises en demeure. Il ne constitue ni une consultation juridique ni un conseil personnalisé au sens de la loi du 31 décembre 1971. Pour les situations complexes, consultez un avocat." },
 ];
 
-/* ── Page FAQ dédiée ─────────────────────────────────────────── */
+/* ── User menu (header — connecté) ──────────────────────────── */
+const UserMenu = ({ user, onDashboard, onLogout }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const prenom = user?.user_metadata?.prenom || user?.email?.split('@')[0] || 'Mon compte';
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display: 'flex', alignItems: 'center', gap: '0.5rem',
+        background: 'none', border: `1.5px solid ${C.borderLight}`,
+        borderRadius: '8px', padding: '0.5rem 0.875rem', cursor: 'pointer',
+        fontFamily: F, fontWeight: 600, fontSize: '0.875rem', color: C.textDark,
+        transition: 'all 0.2s',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = C.primary; }}
+      onMouseLeave={e => { if (!open) e.currentTarget.style.borderColor = C.borderLight; }}>
+        <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: C.primary }}>
+          {prenom[0].toUpperCase()}
+        </div>
+        {prenom}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 0.5rem)', right: 0, minWidth: '200px',
+          background: '#fff', borderRadius: '12px', border: `1px solid ${C.borderLight}`,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)', zIndex: 200, overflow: 'hidden',
+        }}>
+          <div style={{ padding: '0.75rem 1rem', borderBottom: `1px solid ${C.borderLight}` }}>
+            <p style={{ fontSize: '0.75rem', color: '#999', margin: 0 }}>{user.email}</p>
+          </div>
+          {[
+            { label: 'Mon espace', icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>, action: () => { onDashboard(); setOpen(false); } },
+          ].map(item => (
+            <button key={item.label} onClick={item.action} style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
+              padding: '0.75rem 1rem', background: 'none', border: 'none',
+              fontFamily: F, fontSize: '0.875rem', color: C.textDark, cursor: 'pointer',
+              textAlign: 'left', transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = C.bgAlt}
+            onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+              {item.icon}{item.label}
+            </button>
+          ))}
+          <div style={{ borderTop: `1px solid ${C.borderLight}` }}>
+            <button onClick={() => { onLogout(); setOpen(false); }} style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
+              padding: '0.75rem 1rem', background: 'none', border: 'none',
+              fontFamily: F, fontSize: '0.875rem', color: '#EF4444', cursor: 'pointer',
+              textAlign: 'left', transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
+            onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+              Se déconnecter
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ── Auth shared components ──────────────────────────────────── */
+const AuthTopBar = ({ onBack, isMobile }) => (
+  <div style={{ padding: '1.25rem clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: 0 }}>
+      <img src="/LOGO.png" alt="Logo" style={{ height: '1.75rem', width: 'auto' }} />
+      {!isMobile && (
+        <span style={{ fontFamily: F, fontWeight: 700, color: C.textDark, fontSize: '0.975rem', display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+          <span>Mise en Demeure</span>
+          <span style={{ color: C.accent, fontSize: '0.72rem', letterSpacing: '0.04em' }}>rapide.fr</span>
+        </span>
+      )}
+    </button>
+    <button onClick={onBack} style={{ background: 'none', border: 'none', color: C.textMid, fontFamily: F, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', padding: 0, opacity: 0.6, transition: 'opacity 0.2s' }}
+      onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+      onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
+      ← Retour
+    </button>
+  </div>
+);
+
+const AuthTrust = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    <span style={{ fontSize: '0.72rem', color: '#aaa', letterSpacing: '0.04em' }}>Connexion sécurisée · Données chiffrées</span>
+  </div>
+);
+
 /* ── Login Page ─────────────────────────────────────────────── */
-const LoginPage = ({ onBack }) => {
+const LoginPage = ({ onBack, onRegister, onForgot, onSuccess }) => {
   const isMobile = useIsMobile();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd]   = useState(false);
   const [focused, setFocused]   = useState(null);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
 
   const fieldStyle = (name) => ({
     width: '100%', boxSizing: 'border-box',
     padding: '0.875rem 1rem',
     borderRadius: '10px',
-    border: `1.5px solid ${focused === name ? C.accent : C.borderLight}`,
+    border: `1.5px solid ${error && (name === 'email' || name === 'pwd') ? '#EF4444' : focused === name ? C.accent : C.borderLight}`,
     fontFamily: F, fontSize: '0.9rem', color: C.textDark,
-    background: '#fff', outline: 'none',
-    transition: 'border-color 0.2s',
+    background: '#fff', outline: 'none', transition: 'border-color 0.2s',
   });
+
+  const handleLogin = async () => {
+    if (!email || !password) { setError('Veuillez remplir tous les champs.'); return; }
+    setLoading(true); setError('');
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (err) {
+      setError(err.message === 'Invalid login credentials'
+        ? 'Email ou mot de passe incorrect.'
+        : 'Une erreur est survenue. Réessayez.');
+    } else {
+      onSuccess();
+    }
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: C.bgAlt, fontFamily: F, display: 'flex', flexDirection: 'column' }}>
-      {/* Top bar */}
-      <div style={{ padding: '1.25rem clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: 0 }}>
-          <img src="/LOGO.png" alt="Logo" style={{ height: '1.75rem', width: 'auto' }} />
-          {!isMobile && (
-            <span style={{ fontFamily: F, fontWeight: 700, color: C.textDark, fontSize: '0.975rem', display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-              <span>Mise en Demeure</span>
-              <span style={{ color: C.accent, fontSize: '0.72rem', letterSpacing: '0.04em' }}>rapide.fr</span>
-            </span>
-          )}
-        </button>
-        <button onClick={onBack} style={{ background: 'none', border: 'none', color: C.textMid, fontFamily: F, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem', padding: 0, opacity: 0.6, transition: 'opacity 0.2s' }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}>
-          ← Retour
-        </button>
-      </div>
-
-      {/* Center form */}
+      <AuthTopBar onBack={onBack} isMobile={isMobile} />
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem 1.25rem 5rem' }}>
         <div style={{ width: '100%', maxWidth: '440px' }}>
+          <div style={{ background: '#fff', borderRadius: '20px', padding: isMobile ? '2.25rem 1.75rem 2.5rem' : '3rem 2.75rem', boxShadow: '0 8px 48px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)' }}>
+            <p style={{ color: C.accent, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '0.7rem' }}>Espace personnel</p>
+            <h1 style={{ fontFamily: F, fontSize: '1.75rem', fontWeight: 700, color: C.textDark, marginBottom: '0.4rem', lineHeight: 1.2 }}>Connexion</h1>
+            <p style={{ color: C.textMid, fontSize: '0.875rem', marginBottom: '2.25rem', lineHeight: 1.65, opacity: 0.55 }}>Retrouvez vos lettres et suivez vos dossiers.</p>
 
-          {/* Card */}
-          <div style={{
-            background: '#fff', borderRadius: '20px',
-            padding: isMobile ? '2.25rem 1.75rem 2.5rem' : '3rem 2.75rem',
-            boxShadow: '0 8px 48px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
-          }}>
-            <p style={{ color: C.accent, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '0.7rem' }}>
-              Espace personnel
-            </p>
-            <h1 style={{ fontFamily: F, fontSize: '1.75rem', fontWeight: 700, color: C.textDark, marginBottom: '0.4rem', lineHeight: 1.2 }}>
-              Connexion
-            </h1>
-            <p style={{ color: C.textMid, fontSize: '0.875rem', marginBottom: '2.25rem', lineHeight: 1.65, opacity: 0.55 }}>
-              Retrouvez vos lettres et suivez vos dossiers.
-            </p>
+            {error && (
+              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem', color: '#DC2626' }}>
+                {error}
+              </div>
+            )}
 
-            {/* Email */}
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem', letterSpacing: '0.02em' }}>
-                Adresse e-mail
-              </label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem', letterSpacing: '0.02em' }}>Adresse e-mail</label>
+              <input type="email" value={email} onChange={e => { setEmail(e.target.value); setError(''); }}
                 onFocus={() => setFocused('email')} onBlur={() => setFocused(null)}
-                placeholder="vous@example.com" style={fieldStyle('email')} />
+                placeholder="vous@example.com" style={fieldStyle('email')}
+                onKeyDown={e => e.key === 'Enter' && handleLogin()} />
             </div>
 
-            {/* Password */}
             <div style={{ marginBottom: '0.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem', letterSpacing: '0.02em' }}>
-                Mot de passe
-              </label>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem', letterSpacing: '0.02em' }}>Mot de passe</label>
               <div style={{ position: 'relative' }}>
-                <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+                <input type={showPwd ? 'text' : 'password'} value={password} onChange={e => { setPassword(e.target.value); setError(''); }}
                   onFocus={() => setFocused('pwd')} onBlur={() => setFocused(null)}
-                  placeholder="••••••••" style={{ ...fieldStyle('pwd'), paddingRight: '3rem' }} />
-                <button type="button" onClick={() => setShowPwd(v => !v)} style={{
-                  position: 'absolute', right: '0.9rem', top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#aaa',
-                  display: 'flex', alignItems: 'center', transition: 'color 0.15s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.color = C.textDark}
-                onMouseLeave={e => e.currentTarget.style.color = '#aaa'}>
+                  placeholder="••••••••" style={{ ...fieldStyle('pwd'), paddingRight: '3rem' }}
+                  onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+                <button type="button" onClick={() => setShowPwd(v => !v)} style={{ position: 'absolute', right: '0.9rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#aaa', display: 'flex', alignItems: 'center' }}>
                   {showPwd
                     ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                    : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                  }
+                    : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
                 </button>
               </div>
             </div>
 
-            {/* Forgot */}
             <div style={{ textAlign: 'right', marginBottom: '1.75rem' }}>
-              <button style={{ background: 'none', border: 'none', color: C.accent, fontFamily: F, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', padding: 0 }}>
+              <button onClick={onForgot} style={{ background: 'none', border: 'none', color: C.accent, fontFamily: F, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', padding: 0 }}>
                 Mot de passe oublié ?
               </button>
             </div>
 
-            {/* CTA */}
-            <button style={{
-              width: '100%', padding: '0.9rem',
-              borderRadius: '10px', border: 'none',
-              background: C.primary, color: '#fff',
+            <button onClick={handleLogin} disabled={loading} style={{
+              width: '100%', padding: '0.9rem', borderRadius: '10px', border: 'none',
+              background: loading ? '#999' : C.primary, color: '#fff',
               fontFamily: F, fontWeight: 700, fontSize: '0.925rem',
-              cursor: 'pointer', transition: 'all 0.2s',
+              cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-              letterSpacing: '0.01em',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = C.secondary; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = C.primary;   e.currentTarget.style.transform = 'none'; }}>
-              Se connecter
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            onMouseEnter={e => { if (!loading) e.currentTarget.style.background = C.secondary; }}
+            onMouseLeave={e => { if (!loading) e.currentTarget.style.background = C.primary; }}>
+              {loading ? 'Connexion…' : 'Se connecter'}
+              {!loading && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
             </button>
 
-            {/* Divider */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '1.75rem 0' }}>
               <div style={{ flex: 1, height: '1px', background: C.borderLight }} />
               <span style={{ fontSize: '0.72rem', color: '#bbb', fontWeight: 500, letterSpacing: '0.06em' }}>OU</span>
               <div style={{ flex: 1, height: '1px', background: C.borderLight }} />
             </div>
 
-            {/* Sign up */}
             <p style={{ textAlign: 'center', fontSize: '0.875rem', color: C.textMid, margin: 0 }}>
               Pas encore de compte ?{' '}
-              <button style={{ background: 'none', border: 'none', color: C.textDark, fontFamily: F, fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', padding: 0, borderBottom: `1.5px solid ${C.accent}` }}>
+              <button onClick={onRegister} style={{ background: 'none', border: 'none', color: C.textDark, fontFamily: F, fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', padding: 0, borderBottom: `1.5px solid ${C.accent}` }}>
                 Créer un compte
               </button>
             </p>
           </div>
+          <AuthTrust />
+        </div>
+      </div>
+    </div>
+  );
+};
 
-          {/* Trust */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            <span style={{ fontSize: '0.72rem', color: '#aaa', letterSpacing: '0.04em' }}>Connexion sécurisée · Données chiffrées</span>
+/* ── Register Page ───────────────────────────────────────────── */
+const RegisterPage = ({ onBack, onLogin, onSuccess }) => {
+  const isMobile = useIsMobile();
+  const [form, setForm]         = useState({ prenom: '', nom: '', email: '', password: '', confirm: '' });
+  const [showPwd, setShowPwd]   = useState(false);
+  const [focused, setFocused]   = useState(null);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
+  const [done, setDone]         = useState(false);
+
+  const up = (k, v) => { setForm(f => ({ ...f, [k]: v })); setError(''); };
+
+  const fieldStyle = (name) => ({
+    width: '100%', boxSizing: 'border-box',
+    padding: '0.875rem 1rem', borderRadius: '10px',
+    border: `1.5px solid ${focused === name ? C.accent : C.borderLight}`,
+    fontFamily: F, fontSize: '0.9rem', color: C.textDark,
+    background: '#fff', outline: 'none', transition: 'border-color 0.2s',
+  });
+
+  const handleRegister = async () => {
+    if (!form.prenom || !form.nom || !form.email || !form.password) { setError('Tous les champs sont obligatoires.'); return; }
+    if (form.password.length < 8) { setError('Le mot de passe doit contenir au moins 8 caractères.'); return; }
+    if (form.password !== form.confirm) { setError('Les mots de passe ne correspondent pas.'); return; }
+    setLoading(true); setError('');
+    const { error: err } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: { data: { prenom: form.prenom, nom: form.nom } },
+    });
+    setLoading(false);
+    if (err) {
+      setError(err.message === 'User already registered'
+        ? 'Un compte existe déjà avec cet email.'
+        : 'Une erreur est survenue. Réessayez.');
+    } else {
+      setDone(true);
+    }
+  };
+
+  if (done) return (
+    <div style={{ minHeight: '100vh', background: C.bgAlt, fontFamily: F, display: 'flex', flexDirection: 'column' }}>
+      <AuthTopBar onBack={onBack} isMobile={isMobile} />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem 1.25rem 5rem' }}>
+        <div style={{ width: '100%', maxWidth: '440px' }}>
+          <div style={{ background: '#fff', borderRadius: '20px', padding: isMobile ? '2.5rem 1.75rem' : '3rem 2.75rem', boxShadow: '0 8px 48px rgba(0,0,0,0.07)', textAlign: 'center' }}>
+            <div style={{ width: '72px', height: '72px', background: '#F0FDF4', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+            <p style={{ color: C.accent, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '0.7rem' }}>Compte créé</p>
+            <h2 style={{ fontFamily: F, fontSize: '1.6rem', fontWeight: 700, color: C.textDark, marginBottom: '0.75rem' }}>Vérifiez votre email</h2>
+            <p style={{ color: C.textMid, fontSize: '0.9rem', lineHeight: 1.7, opacity: 0.7, marginBottom: '2rem' }}>
+              Un lien de confirmation a été envoyé à <strong style={{ color: C.textDark, opacity: 1 }}>{form.email}</strong>.<br/>Cliquez sur le lien pour activer votre compte.
+            </p>
+            <button onClick={onLogin} style={{ background: C.primary, color: '#fff', width: '100%', padding: '0.9rem', borderRadius: '10px', border: 'none', fontFamily: F, fontWeight: 700, fontSize: '0.925rem', cursor: 'pointer' }}>
+              Aller à la connexion
+            </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight: '100vh', background: C.bgAlt, fontFamily: F, display: 'flex', flexDirection: 'column' }}>
+      <AuthTopBar onBack={onBack} isMobile={isMobile} />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem 1.25rem 5rem' }}>
+        <div style={{ width: '100%', maxWidth: '440px' }}>
+          <div style={{ background: '#fff', borderRadius: '20px', padding: isMobile ? '2.25rem 1.75rem 2.5rem' : '3rem 2.75rem', boxShadow: '0 8px 48px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)' }}>
+            <p style={{ color: C.accent, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '0.7rem' }}>Espace personnel</p>
+            <h1 style={{ fontFamily: F, fontSize: '1.75rem', fontWeight: 700, color: C.textDark, marginBottom: '0.4rem', lineHeight: 1.2 }}>Créer un compte</h1>
+            <p style={{ color: C.textMid, fontSize: '0.875rem', marginBottom: '2rem', lineHeight: 1.65, opacity: 0.55 }}>Gérez toutes vos lettres depuis un seul endroit.</p>
+
+            {error && (
+              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem', color: '#DC2626' }}>
+                {error}
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem' }}>Prénom</label>
+                <input value={form.prenom} onChange={e => up('prenom', e.target.value)}
+                  onFocus={() => setFocused('prenom')} onBlur={() => setFocused(null)}
+                  placeholder="Jean" style={fieldStyle('prenom')} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem' }}>Nom</label>
+                <input value={form.nom} onChange={e => up('nom', e.target.value)}
+                  onFocus={() => setFocused('nom')} onBlur={() => setFocused(null)}
+                  placeholder="Dupont" style={fieldStyle('nom')} />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem' }}>Adresse e-mail</label>
+              <input type="email" value={form.email} onChange={e => up('email', e.target.value)}
+                onFocus={() => setFocused('email')} onBlur={() => setFocused(null)}
+                placeholder="vous@example.com" style={fieldStyle('email')} />
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem' }}>Mot de passe <span style={{ fontWeight: 400, color: '#999' }}>(8 caractères min.)</span></label>
+              <div style={{ position: 'relative' }}>
+                <input type={showPwd ? 'text' : 'password'} value={form.password} onChange={e => up('password', e.target.value)}
+                  onFocus={() => setFocused('pwd')} onBlur={() => setFocused(null)}
+                  placeholder="••••••••" style={{ ...fieldStyle('pwd'), paddingRight: '3rem' }} />
+                <button type="button" onClick={() => setShowPwd(v => !v)} style={{ position: 'absolute', right: '0.9rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#aaa', display: 'flex', alignItems: 'center' }}>
+                  {showPwd
+                    ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>}
+                </button>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1.75rem' }}>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem' }}>Confirmer le mot de passe</label>
+              <input type="password" value={form.confirm} onChange={e => up('confirm', e.target.value)}
+                onFocus={() => setFocused('confirm')} onBlur={() => setFocused(null)}
+                placeholder="••••••••" style={fieldStyle('confirm')}
+                onKeyDown={e => e.key === 'Enter' && handleRegister()} />
+            </div>
+
+            <button onClick={handleRegister} disabled={loading} style={{
+              width: '100%', padding: '0.9rem', borderRadius: '10px', border: 'none',
+              background: loading ? '#999' : C.primary, color: '#fff',
+              fontFamily: F, fontWeight: 700, fontSize: '0.925rem',
+              cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+            }}
+            onMouseEnter={e => { if (!loading) e.currentTarget.style.background = C.secondary; }}
+            onMouseLeave={e => { if (!loading) e.currentTarget.style.background = C.primary; }}>
+              {loading ? 'Création…' : 'Créer mon compte'}
+              {!loading && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>}
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '1.75rem 0' }}>
+              <div style={{ flex: 1, height: '1px', background: C.borderLight }} />
+              <span style={{ fontSize: '0.72rem', color: '#bbb', fontWeight: 500, letterSpacing: '0.06em' }}>OU</span>
+              <div style={{ flex: 1, height: '1px', background: C.borderLight }} />
+            </div>
+
+            <p style={{ textAlign: 'center', fontSize: '0.875rem', color: C.textMid, margin: 0 }}>
+              Déjà un compte ?{' '}
+              <button onClick={onLogin} style={{ background: 'none', border: 'none', color: C.textDark, fontFamily: F, fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', padding: 0, borderBottom: `1.5px solid ${C.accent}` }}>
+                Se connecter
+              </button>
+            </p>
+          </div>
+          <AuthTrust />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── Forgot Password Page ────────────────────────────────────── */
+const ForgotPasswordPage = ({ onBack, onLogin }) => {
+  const isMobile = useIsMobile();
+  const [email, setEmail]   = useState('');
+  const [loading, setLoading] = useState(false);
+  const [done, setDone]     = useState(false);
+  const [error, setError]   = useState('');
+
+  const handleReset = async () => {
+    if (!email) { setError('Veuillez saisir votre adresse email.'); return; }
+    setLoading(true); setError('');
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/?reset=true`,
+    });
+    setLoading(false);
+    if (err) setError('Une erreur est survenue. Réessayez.');
+    else setDone(true);
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: C.bgAlt, fontFamily: F, display: 'flex', flexDirection: 'column' }}>
+      <AuthTopBar onBack={onBack} isMobile={isMobile} />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem 1.25rem 5rem' }}>
+        <div style={{ width: '100%', maxWidth: '440px' }}>
+          <div style={{ background: '#fff', borderRadius: '20px', padding: isMobile ? '2.25rem 1.75rem 2.5rem' : '3rem 2.75rem', boxShadow: '0 8px 48px rgba(0,0,0,0.07)' }}>
+            <p style={{ color: C.accent, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '0.7rem' }}>Accès au compte</p>
+            <h1 style={{ fontFamily: F, fontSize: '1.75rem', fontWeight: 700, color: C.textDark, marginBottom: '0.4rem', lineHeight: 1.2 }}>Mot de passe oublié</h1>
+
+            {!done ? (
+              <>
+                <p style={{ color: C.textMid, fontSize: '0.875rem', marginBottom: '2rem', lineHeight: 1.65, opacity: 0.55 }}>
+                  Saisissez votre email — nous vous enverrons un lien de réinitialisation.
+                </p>
+                {error && (
+                  <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1.25rem', fontSize: '0.85rem', color: '#DC2626' }}>{error}</div>
+                )}
+                <div style={{ marginBottom: '1.75rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.45rem' }}>Adresse e-mail</label>
+                  <input type="email" value={email} onChange={e => { setEmail(e.target.value); setError(''); }}
+                    placeholder="vous@example.com"
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '0.875rem 1rem', borderRadius: '10px', border: `1.5px solid ${C.borderLight}`, fontFamily: F, fontSize: '0.9rem', color: C.textDark, background: '#fff', outline: 'none' }}
+                    onFocus={e => e.target.style.borderColor = C.accent}
+                    onBlur={e => e.target.style.borderColor = C.borderLight}
+                    onKeyDown={e => e.key === 'Enter' && handleReset()} />
+                </div>
+                <button onClick={handleReset} disabled={loading} style={{
+                  width: '100%', padding: '0.9rem', borderRadius: '10px', border: 'none',
+                  background: loading ? '#999' : C.primary, color: '#fff',
+                  fontFamily: F, fontWeight: 700, fontSize: '0.925rem', cursor: loading ? 'not-allowed' : 'pointer',
+                }}>
+                  {loading ? 'Envoi…' : 'Envoyer le lien'}
+                </button>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', paddingTop: '0.5rem' }}>
+                <div style={{ width: '64px', height: '64px', background: '#EFF6FF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                </div>
+                <p style={{ color: C.textMid, fontSize: '0.9rem', lineHeight: 1.7, opacity: 0.7, marginBottom: '0' }}>
+                  Si un compte existe avec <strong style={{ color: C.textDark, opacity: 1 }}>{email}</strong>, vous recevrez un lien dans les prochaines minutes.
+                </p>
+              </div>
+            )}
+
+            <div style={{ textAlign: 'center', marginTop: '1.75rem' }}>
+              <button onClick={onLogin} style={{ background: 'none', border: 'none', color: C.accent, fontFamily: F, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', padding: 0 }}>
+                ← Retour à la connexion
+              </button>
+            </div>
+          </div>
+          <AuthTrust />
         </div>
       </div>
     </div>
@@ -1099,8 +1400,22 @@ const LegalPage = ({ page, onBack }) => {
 export default function App() {
   const isMobile = useIsMobile();
   const scrolled  = useScrolled();
-  const [view, setView]       = useState('home');
+  const [view, setView]         = useState('home');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser]         = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  /* Écoute l'état auth Supabase */
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   /* Lock body scroll when mobile menu is open */
   useEffect(() => {
@@ -1108,14 +1423,20 @@ export default function App() {
     return () => { document.body.style.overflow = ''; };
   }, [menuOpen]);
 
-  if (view === 'form')    return <FormPage onBack={() => setView('home')} />;
-  if (view === 'faq')     return <FAQPage onBack={() => { setView('home'); window.scrollTo(0,0); }} onGo={() => { setView('form'); window.scrollTo(0,0); }} />;
-  if (view === 'login')   return <LoginPage onBack={() => { setView('home'); window.scrollTo(0,0); }} />;
-  if (['mentions', 'confidentialite', 'cgu'].includes(view)) return <LegalPage page={view} onBack={() => setView('home')} />;
+  const nav = (v) => { setView(v); window.scrollTo(0, 0); };
 
-  const go      = () => { setView('form');  window.scrollTo(0, 0); };
-  const goFaq   = () => { setView('faq');   window.scrollTo(0, 0); };
-  const goLogin = () => { setView('login'); window.scrollTo(0, 0); };
+  if (authLoading) return null;
+
+  if (view === 'form')            return <FormPage onBack={() => nav('home')} />;
+  if (view === 'faq')             return <FAQPage onBack={() => nav('home')} onGo={() => nav('form')} />;
+  if (view === 'login')           return <LoginPage onBack={() => nav('home')} onRegister={() => nav('register')} onForgot={() => nav('forgot-password')} onSuccess={() => nav('home')} />;
+  if (view === 'register')        return <RegisterPage onBack={() => nav('home')} onLogin={() => nav('login')} onSuccess={() => nav('login')} />;
+  if (view === 'forgot-password') return <ForgotPasswordPage onBack={() => nav('home')} onLogin={() => nav('login')} />;
+  if (['mentions', 'confidentialite', 'cgu'].includes(view)) return <LegalPage page={view} onBack={() => nav('home')} />;
+
+  const go      = () => nav('form');
+  const goFaq   = () => nav('faq');
+  const goLogin = () => nav('login');
 
   /* ── Shared styles ── */
   const container = {
@@ -1275,34 +1596,31 @@ export default function App() {
           {/* Desktop buttons */}
           {!isMobile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <button style={{
-                background: 'none', border: `2px solid ${C.borderLight}`, color: C.textMuted,
-                padding: '0.55rem 1rem', borderRadius: '7px', fontFamily: F, fontWeight: 700,
-                fontSize: '0.825rem', cursor: 'pointer', transition: 'all 0.2s',
-                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.color = C.primary; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = C.borderLight; e.currentTarget.style.color = C.textMuted; }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="1" y="3" width="17" height="13" rx="1" strokeWidth="1.8"/>
-                  <polyline points="1,3 9.5,12 18,3" strokeWidth="1.8"/>
-                  <circle cx="18.5" cy="18.5" r="5" fill="white" stroke="none"/>
-                  <circle cx="18.5" cy="18.5" r="4.5" strokeWidth="1.8"/>
-                  <line x1="15.8" y1="21.2" x2="21.2" y2="15.8" strokeWidth="1.8"/>
-                </svg>
-                Gérer mon abonnement
-              </button>
-              <button onClick={goLogin} style={{
-                background: C.primary, color: '#fff', padding: '0.6rem 1.25rem',
-                borderRadius: '8px', border: `2px solid ${C.primary}`, fontFamily: F, fontWeight: 700, fontSize: '0.875rem',
-                cursor: 'pointer', transition: 'all 0.2s',
-                display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = C.secondary; e.currentTarget.style.borderColor = C.secondary; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = C.primary; e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.transform = 'translateY(0)'; }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                Se connecter
-              </button>
+              {user ? (
+                <UserMenu user={user} onDashboard={() => nav('dashboard')} onLogout={async () => { await supabase.auth.signOut(); }} />
+              ) : (
+                <>
+                  <button onClick={go} style={{
+                    background: C.accent, color: C.textDark, padding: '0.6rem 1.25rem',
+                    borderRadius: '8px', border: `2px solid ${C.accent}`, fontFamily: F, fontWeight: 700, fontSize: '0.875rem',
+                    cursor: 'pointer', transition: 'all 0.2s', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = C.accentHover; e.currentTarget.style.borderColor = C.accentHover; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = C.accent; e.currentTarget.style.borderColor = C.accent; }}>
+                    Envoyer une lettre
+                  </button>
+                  <button onClick={goLogin} style={{
+                    background: C.primary, color: '#fff', padding: '0.6rem 1.25rem',
+                    borderRadius: '8px', border: `2px solid ${C.primary}`, fontFamily: F, fontWeight: 700, fontSize: '0.875rem',
+                    cursor: 'pointer', transition: 'all 0.2s', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = C.secondary; e.currentTarget.style.borderColor = C.secondary; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = C.primary; e.currentTarget.style.borderColor = C.primary; }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    Se connecter
+                  </button>
+                </>
+              )}
             </div>
           )}
 
