@@ -2007,7 +2007,7 @@ export default function App() {
   if (view === 'dashboard')       return <DashboardPage user={user} onBack={() => nav('home')} onNewLettre={() => nav('form')} />;
   if (['mentions', 'confidentialite', 'cgu'].includes(view)) return <LegalPage page={view} onBack={() => nav('home')} />;
 
-  const go        = () => nav('contact');
+  const go        = () => nav('form');
   const goFaq     = () => nav('faq');
   const goLogin   = () => nav('login');
   const goContact = () => nav('contact');
@@ -2174,7 +2174,7 @@ export default function App() {
                 <UserMenu user={user} onDashboard={() => nav('dashboard')} onLogout={async () => { await supabase.auth.signOut(); }} />
               ) : (
                 <>
-                  <button onClick={go} style={{
+                  <button onClick={goContact} style={{
                     background: C.accent, color: C.textDark, padding: '0.6rem 1.25rem',
                     borderRadius: '8px', border: `2px solid ${C.accent}`, fontFamily: F, fontWeight: 700, fontSize: '0.875rem',
                     cursor: 'pointer', transition: 'all 0.2s', display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
