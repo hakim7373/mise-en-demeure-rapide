@@ -1968,8 +1968,8 @@ const DashboardPage = ({ user, onBack, onNewLettre }) => {
     <div style={{ minHeight: '100vh', background: C.bgAlt, fontFamily: F }}>
       {/* Header */}
       <div style={{ background: '#fff', borderBottom: `1px solid ${C.borderLight}`, position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ width: '100%', boxSizing: 'border-box', padding: '1rem clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: 0 }}>
+        <div style={{ width: '100%', boxSizing: 'border-box', padding: '1.5rem clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: 0, marginLeft: '2rem' }}>
             <img src="/LOGO.png" alt="Logo" style={{ height: '1.75rem', width: 'auto' }} />
             {!isMobile && (
               <span style={{ fontFamily: F, fontWeight: 700, color: C.textDark, fontSize: '0.95rem', display: 'flex', flexDirection: 'column', lineHeight: 1.2, alignItems: 'flex-start' }}>
