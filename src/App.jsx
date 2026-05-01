@@ -2481,7 +2481,7 @@ export default function App() {
         borderBottom: '1px solid rgba(0,0,0,0.12)',
         transition: 'background 0.3s ease, box-shadow 0.3s ease',
       }}>
-        <div style={{ ...container, padding: '0 clamp(1.25rem, 5vw, 2.5rem) 0 clamp(0.5rem, 2vw, 1rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2rem' }}>
+        <div style={{ ...container, padding: '0 clamp(1.25rem, 5vw, 2.5rem) 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2rem' }}>
           <button onClick={() => { setView('home'); window.scrollTo(0, 0); }} style={{
             background: 'none', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: '0.6rem',
