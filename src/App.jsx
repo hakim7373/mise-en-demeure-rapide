@@ -1410,11 +1410,32 @@ const DashboardPage = ({ user, onBack, onNewLettre }) => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      const metaPrenom = user?.user_metadata?.prenom || '';
+      const metaNom    = user?.user_metadata?.nom    || '';
+
       const [{ data: prof }, { data: lets }] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
         supabase.from('lettres').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
       ]);
-      if (prof) { setProfile(prof); setEditProfile({ prenom: prof.prenom || '', nom: prof.nom || '', telephone: prof.telephone || '' }); }
+
+      if (prof) {
+        // Si le profil existe mais prenom/nom sont vides, on utilise les métadonnées
+        const prenom = prof.prenom || metaPrenom;
+        const nom    = prof.nom    || metaNom;
+        setProfile({ ...prof, prenom, nom });
+        setEditProfile({ prenom, nom, telephone: prof.telephone || '' });
+        // Mise à jour silencieuse si les données étaient manquantes
+        if (!prof.prenom && metaPrenom) {
+          supabase.from('profiles').update({ prenom: metaPrenom, nom: metaNom }).eq('id', user.id);
+        }
+      } else {
+        // Profil inexistant — on le crée
+        const newProf = { id: user.id, prenom: metaPrenom, nom: metaNom };
+        await supabase.from('profiles').insert(newProf);
+        setProfile(newProf);
+        setEditProfile({ prenom: metaPrenom, nom: metaNom, telephone: '' });
+      }
+
       setLettres(lets || []);
       setLoading(false);
     };
