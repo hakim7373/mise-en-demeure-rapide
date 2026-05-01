@@ -1990,7 +1990,7 @@ const DashboardPage = ({ user, onBack, onNewLettre }) => {
         </div>
 
         {/* Tabs */}
-        <div style={{ width: '100%', boxSizing: 'border-box', padding: '0 clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', gap: 0, overflowX: 'auto' }}>
+        <div style={{ width: '100%', boxSizing: 'border-box', padding: '0 clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', gap: 0, overflowX: 'auto', justifyContent: 'center' }}>
           {tabs.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
               background: 'none', border: 'none', borderBottom: `2px solid ${tab === t.id ? C.accent : 'transparent'}`,
