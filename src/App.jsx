@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShieldCheck, CheckCircle, ArrowRight, ChevronDown, FileText, Zap, Send, Star, Mail, Users } from 'lucide-react';
+import { CheckCircle, ChevronDown, FileText, Zap, Send } from 'lucide-react';
 
 /* ── Tokens ─────────────────────────────────────────────────── */
 const F    = "'DM Sans', sans-serif";
@@ -995,141 +995,6 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
   );
 };
 
-/* ── Email capture ──────────────────────────────────────────── */
-const EmailCapture = ({ onBack, onLegal }) => {
-  const isMobile = useIsMobile();
-  const [email, setEmail]     = useState('');
-  const [consent, setConsent] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
-
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!email.includes('@')) { setError('Adresse email invalide.'); return; }
-    if (!consent) { setError("Veuillez accepter la politique de confidentialité."); return; }
-    setLoading(true); setError('');
-    try {
-      const res = await fetch('https://formspree.io/f/xdapgbvg', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      if (res.ok) setSubmitted(true);
-      else setError('Une erreur est survenue.');
-    } catch { setError('Une erreur est survenue.'); }
-    setLoading(false);
-  };
-
-  return (
-    <div style={{ minHeight: '100vh', background: C.primary, fontFamily: F, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
-      <div style={{ width: '100%', maxWidth: '480px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <p style={{ fontFamily: F, fontSize: '1.5rem', fontWeight: 700, color: C.textLight, letterSpacing: '0.01em' }}>
-            Mise en Demeure <span style={{ color: C.accent }}>Rapide</span>
-          </p>
-        </div>
-        <div style={{ background: C.white, borderRadius: '12px', padding: isMobile ? '2rem 1.5rem' : '3rem', boxShadow: '0 20px 60px rgba(0,0,0,0.4)', border: `1px solid ${C.borderLight}` }}>
-          {!submitted ? (
-            <>
-              <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                <div style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.45rem 1rem', borderRadius: '100px',
-                  background: 'rgba(201,150,59,0.1)', border: `1px solid ${C.borderDark}`,
-                  color: C.accent, fontSize: '0.75rem', fontWeight: 700, marginBottom: '1.5rem',
-                  letterSpacing: '0.05em', textTransform: 'uppercase',
-                }}>
-                  ✦ Lancement bientôt
-                </div>
-                <h2 style={{ fontFamily: F, fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.02em', color: C.textDark, lineHeight: 1.2, marginBottom: '0.875rem' }}>
-                  Soyez parmi les premiers.
-                </h2>
-                <p style={{ color: C.textMuted, fontSize: '1rem', lineHeight: 1.65 }}>
-                  Accès prioritaire + <strong style={{ color: C.textDark }}>50% de réduction à vie</strong> pour les 500 premiers.
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', justifyContent: 'center', padding: '0.75rem 1.25rem', borderRadius: '8px', background: C.bgLight, marginBottom: '1.75rem' }}>
-                <Users size={15} color={C.accent} />
-                <span style={{ color: C.textMuted, fontSize: '0.875rem' }}>
-                  <strong style={{ color: C.textDark }}>247 personnes</strong> déjà inscrites
-                </span>
-              </div>
-              <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={{ position: 'relative' }}>
-                  <Mail size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: C.textMuted }} />
-                  <input
-                    type="email" value={email}
-                    onChange={e => { setEmail(e.target.value); setError(''); }}
-                    placeholder="votre@email.com"
-                    style={{
-                      width: '100%', padding: '0.9rem 1.125rem 0.9rem 2.75rem',
-                      border: `1.5px solid ${error ? '#EF4444' : C.borderLight}`,
-                      borderRadius: '8px', outline: 'none',
-                      fontFamily: F, fontSize: '0.95rem', color: C.textDark,
-                      background: C.white, transition: 'border-color 0.2s', boxSizing: 'border-box',
-                    }}
-                    onFocus={e => e.target.style.borderColor = C.accent}
-                    onBlur={e => e.target.style.borderColor = error ? '#EF4444' : C.borderLight}
-                  />
-                </div>
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox" checked={consent}
-                    onChange={e => { setConsent(e.target.checked); setError(''); }}
-                    style={{ marginTop: '3px', accentColor: C.accent, flexShrink: 0, width: '15px', height: '15px', cursor: 'pointer' }}
-                  />
-                  <span style={{ fontSize: '0.75rem', color: C.textMuted, lineHeight: 1.5 }}>
-                    J'accepte que mes données soient utilisées pour être informé(e) du lancement, conformément à la{' '}
-                    <button type="button" onClick={() => onLegal('confidentialite')} style={{ background: 'none', border: 'none', color: C.accent, fontFamily: F, fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
-                      politique de confidentialité
-                    </button>.
-                  </span>
-                </label>
-                {error && <p style={{ color: '#EF4444', fontSize: '0.8rem' }}>{error}</p>}
-                <button type="submit" disabled={loading} style={{
-                  background: C.accent, padding: '1rem', borderRadius: '8px', border: 'none',
-                  color: C.textDark, fontFamily: F, fontWeight: 700, fontSize: '1rem',
-                  cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
-                  transition: 'all 0.3s', boxShadow: '0 4px 20px rgba(201,168,76,0.25)',
-                }}
-                onMouseEnter={e => { if (!loading) { e.currentTarget.style.background = C.accentHover; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
-                onMouseLeave={e => { e.currentTarget.style.background = C.accent; e.currentTarget.style.transform = 'translateY(0)'; }}>
-                  {loading ? 'Inscription…' : 'Obtenir mon accès prioritaire →'}
-                </button>
-              </form>
-              <p style={{ color: C.textMuted, fontSize: '0.75rem', textAlign: 'center', marginTop: '1rem' }}>
-                Pas de spam. Désinscription en un clic.
-              </p>
-              <button onClick={onBack} style={{ background: 'none', border: 'none', color: C.textMuted, fontFamily: F, fontSize: '0.8rem', cursor: 'pointer', width: '100%', textAlign: 'center', marginTop: '1.25rem', transition: 'color 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.color = C.textDark}
-                onMouseLeave={e => e.currentTarget.style.color = C.textMuted}>
-                ← Retour à l'accueil
-              </button>
-            </>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-              <div style={{ width: '80px', height: '80px', background: '#ECFDF5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.75rem' }}>
-                <CheckCircle size={36} color="#059669" strokeWidth={2} />
-              </div>
-              <p style={{ color: C.accent, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '0.75rem' }}>Inscription confirmée</p>
-              <h2 style={{ fontFamily: F, fontSize: '1.875rem', fontWeight: 700, color: C.textDark, marginBottom: '0.875rem' }}>
-                Vous êtes sur la liste !
-              </h2>
-              <p style={{ color: C.textMuted, fontSize: '0.95rem', lineHeight: 1.65, marginBottom: '2rem' }}>
-                On vous prévient dès l'ouverture avec votre <strong style={{ color: C.textDark }}>accès prioritaire et 50% de réduction</strong>.
-              </p>
-              <button onClick={onBack} style={{ background: C.accent, padding: '0.875rem 2rem', borderRadius: '8px', border: 'none', color: C.primary, fontFamily: F, fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' }}>
-                Retour à l'accueil
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 /* ── Pages légales ──────────────────────────────────────────── */
 const LegalPage = ({ page, onBack }) => {
   const isMobile = useIsMobile();
@@ -1176,10 +1041,6 @@ const LegalPage = ({ page, onBack }) => {
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: 700, color: C.textLight, marginBottom: '0.5rem' }}>Base légale</h3>
             <p>Le traitement est fondé sur votre consentement explicite (article 6.1.a du RGPD), recueilli via la case à cocher.</p>
-          </div>
-          <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: 700, color: C.textLight, marginBottom: '0.5rem' }}>Sous-traitant</h3>
-            <p>Les données sont transmises à Formspree Inc. (formspree.io), prestataire conforme au RGPD.</p>
           </div>
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: 700, color: C.textLight, marginBottom: '0.5rem' }}>Vos droits</h3>
@@ -1248,7 +1109,6 @@ export default function App() {
   }, [menuOpen]);
 
   if (view === 'form')    return <FormPage onBack={() => setView('home')} />;
-  if (view === 'capture') return <EmailCapture onBack={() => setView('home')} onLegal={p => setView(p)} />;
   if (view === 'faq')     return <FAQPage onBack={() => { setView('home'); window.scrollTo(0,0); }} onGo={() => { setView('form'); window.scrollTo(0,0); }} />;
   if (view === 'login')   return <LoginPage onBack={() => { setView('home'); window.scrollTo(0,0); }} />;
   if (['mentions', 'confidentialite', 'cgu'].includes(view)) return <LegalPage page={view} onBack={() => setView('home')} />;
