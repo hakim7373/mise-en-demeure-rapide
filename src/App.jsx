@@ -1466,6 +1466,7 @@ const DashboardPage = ({ user, onBack, onNewLettre }) => {
 
   const tabs = [
     { id: 'lettres',     label: 'Mes lettres' },
+    { id: 'suivi',       label: 'Suivi' },
     { id: 'profil',      label: 'Mon profil' },
     { id: 'abonnement',  label: 'Abonnement' },
     { id: 'factures',    label: 'Factures' },
@@ -1574,6 +1575,110 @@ const DashboardPage = ({ user, onBack, onNewLettre }) => {
                 )}
               </div>
             )}
+
+            {/* ── SUIVI ── */}
+            {tab === 'suivi' && (() => {
+              const lettresAvecStatut = lettres.filter(l => l.statut !== 'brouillon');
+
+              const steps = (l) => [
+                { label: 'Lettre générée',          sub: l.created_at ? new Date(l.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null, done: true },
+                { label: 'Paiement confirmé',        sub: l.paid_at ? new Date(l.paid_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : 'En attente', done: !!l.paid_at },
+                { label: 'Envoi en lettre recommandée AR', sub: l.sent_at ? new Date(l.sent_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : 'En attente d\'envoi', done: !!l.sent_at },
+                { label: 'Accusé de réception signé', sub: l.delivered_at ? new Date(l.delivered_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : 'En attente de signature', done: !!l.delivered_at },
+              ];
+
+              return (
+                <div>
+                  <div style={{ marginBottom: '2rem' }}>
+                    <h1 style={{ fontFamily: F, fontSize: '1.5rem', fontWeight: 700, color: C.textDark, marginBottom: '0.25rem' }}>Suivi des envois</h1>
+                    <p style={{ color: '#888', fontSize: '0.875rem' }}>Statut en temps réel de vos lettres recommandées.</p>
+                  </div>
+
+                  {lettresAvecStatut.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '5rem 2rem', background: '#fff', borderRadius: '16px', border: `1px solid ${C.borderLight}` }}>
+                      <div style={{ width: '64px', height: '64px', background: C.bgAlt, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                      </div>
+                      <p style={{ fontWeight: 700, color: C.textDark, fontSize: '1rem', marginBottom: '0.5rem' }}>Aucun envoi en cours</p>
+                      <p style={{ color: '#888', fontSize: '0.875rem' }}>Le suivi apparaîtra ici une fois votre lettre payée et envoyée.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                      {lettresAvecStatut.map(l => (
+                        <div key={l.id} style={{ background: '#fff', borderRadius: '16px', border: `1px solid ${C.borderLight}`, overflow: 'hidden' }}>
+                          {/* En-tête lettre */}
+                          <div style={{ padding: '1.25rem 1.5rem', borderBottom: `1px solid ${C.borderLight}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+                            <div>
+                              <p style={{ fontWeight: 700, color: C.textDark, fontSize: '0.95rem', marginBottom: '0.2rem' }}>{l.destinataire_nom || 'Destinataire'}</p>
+                              <p style={{ color: '#888', fontSize: '0.8rem' }}>
+                                { { facture: 'Facture impayée', loyer: 'Loyer impayé', caution: 'Caution non restituée', travaux: 'Travaux mal réalisés', remboursement: 'Remboursement', autre: 'Autre' }[l.litige] || l.litige }
+                                {l.montant ? ` · ${Number(l.montant).toLocaleString('fr-FR')} €` : ''}
+                              </p>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                              {l.tracking_id && (
+                                <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#999', background: C.bgAlt, padding: '0.25rem 0.6rem', borderRadius: '6px' }}>
+                                  #{l.tracking_id}
+                                </span>
+                              )}
+                              <span style={{ background: statusBg(l.statut), color: statusColor(l.statut), fontSize: '0.72rem', fontWeight: 700, padding: '0.25rem 0.7rem', borderRadius: '20px' }}>
+                                {statusLabel(l.statut)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Timeline */}
+                          <div style={{ padding: '1.5rem' }}>
+                            {steps(l).map((step, i, arr) => (
+                              <div key={step.label} style={{ display: 'flex', gap: '1rem', marginBottom: i < arr.length - 1 ? '0.25rem' : 0 }}>
+                                {/* Indicateur + ligne */}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                                  <div style={{
+                                    width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
+                                    background: step.done ? C.accent : C.bgAlt,
+                                    border: `2px solid ${step.done ? C.accent : C.borderLight}`,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  }}>
+                                    {step.done
+                                      ? <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                      : <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: C.borderLight }} />
+                                    }
+                                  </div>
+                                  {i < arr.length - 1 && (
+                                    <div style={{ width: '2px', flex: 1, background: step.done ? C.accent : C.borderLight, margin: '4px 0', minHeight: '28px', opacity: step.done ? 0.4 : 1 }} />
+                                  )}
+                                </div>
+                                {/* Texte */}
+                                <div style={{ paddingBottom: i < arr.length - 1 ? '1rem' : 0 }}>
+                                  <p style={{ fontWeight: step.done ? 600 : 400, color: step.done ? C.textDark : '#aaa', fontSize: '0.875rem', marginBottom: '0.15rem' }}>{step.label}</p>
+                                  <p style={{ fontSize: '0.775rem', color: step.done ? '#888' : '#ccc' }}>{step.sub}</p>
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Lien La Poste */}
+                            {l.laposte_tracking && (
+                              <a href={`https://www.laposte.fr/outils/suivre-vos-envois?code=${l.laposte_tracking}`} target="_blank" rel="noopener noreferrer" style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.25rem',
+                                background: C.bgAlt, border: `1px solid ${C.borderLight}`,
+                                padding: '0.6rem 1rem', borderRadius: '8px',
+                                fontFamily: F, fontSize: '0.8rem', fontWeight: 600, color: C.textDark,
+                                textDecoration: 'none', transition: 'border-color 0.2s',
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.borderColor = C.accent}
+                              onMouseLeave={e => e.currentTarget.style.borderColor = C.borderLight}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                                Suivre sur La Poste — {l.laposte_tracking}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* ── MON PROFIL ── */}
             {tab === 'profil' && (
