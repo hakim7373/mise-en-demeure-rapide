@@ -1336,6 +1336,132 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
   );
 };
 
+/* ── Page Contact ───────────────────────────────────────────── */
+const ContactPage = ({ onBack }) => {
+  const isMobile = useIsMobile();
+  const [form, setForm]       = useState({ nom: '', email: '', sujet: '', message: '' });
+  const [sent, setSent]       = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    await fetch('https://formspree.io/f/xpwzgqdb', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(form),
+    });
+    setSent(true);
+    setLoading(false);
+  };
+
+  const inputStyle = { width: '100%', padding: '0.85rem 1rem', borderRadius: '10px', border: '1.5px solid #E8E6E1', fontFamily: F, fontSize: '0.95rem', color: '#1A1A2E', background: '#FAFAF8', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s, background 0.2s' };
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#fff', fontFamily: F }}>
+      <AuthTopBar onBack={onBack} />
+
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '3rem 1.5rem 5rem' : '5rem 2rem 7rem', display: isMobile ? 'block' : 'grid', gridTemplateColumns: '1fr 1fr', gap: '5rem', alignItems: 'start' }}>
+
+        {/* Colonne gauche — infos */}
+        <div>
+          <p style={{ color: C.accent, fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '1rem' }}>Contact</p>
+          <h1 style={{ fontSize: 'clamp(2rem, 3.5vw, 3rem)', fontWeight: 700, color: C.textDark, marginBottom: '1.25rem', lineHeight: 1.15 }}>
+            Une question ?<br />On vous répond.
+          </h1>
+          <p style={{ color: C.textMid, fontSize: '1rem', lineHeight: 1.75, marginBottom: '3rem', maxWidth: '380px' }}>
+            Notre équipe est disponible pour répondre à toutes vos questions concernant nos services, la mise en demeure ou votre dossier en cours.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {[
+              { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>, label: 'Email', value: 'contact@miseendemeure-rapide.fr' },
+              { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>, label: 'Délai de réponse', value: 'Sous 24h ouvrées' },
+              { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>, label: 'Service', value: '100% en ligne — France entière' },
+            ].map(({ icon, label, value }) => (
+              <div key={label} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(201,169,110,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: C.accent }}>
+                  {icon}
+                </div>
+                <div>
+                  <p style={{ fontSize: '0.78rem', fontWeight: 600, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{label}</p>
+                  <p style={{ fontSize: '0.95rem', fontWeight: 600, color: C.textDark }}>{value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Colonne droite — formulaire */}
+        <div style={{ marginTop: isMobile ? '3rem' : 0 }}>
+          {sent ? (
+            <div style={{ background: '#F8FBF8', border: '1px solid #C6E8CC', borderRadius: '16px', padding: '3rem 2rem', textAlign: 'center' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(59,173,122,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3BAD7A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              </div>
+              <p style={{ fontWeight: 700, color: C.textDark, fontSize: '1.2rem', marginBottom: '0.6rem' }}>Message envoyé !</p>
+              <p style={{ color: C.textMid, fontSize: '0.95rem', lineHeight: 1.65 }}>Nous vous répondrons sous 24h à l'adresse<br /><strong>{form.email}</strong></p>
+            </div>
+          ) : (
+            <div style={{ background: '#FAFAF8', borderRadius: '20px', padding: isMobile ? '2rem 1.5rem' : '2.5rem', border: '1px solid #ECEAE5' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.textDark, marginBottom: '1.75rem' }}>Envoyer un message</h2>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  {[
+                    { key: 'nom',   label: 'Nom complet',   type: 'text',  placeholder: 'Jean Dupont' },
+                    { key: 'email', label: 'Adresse email', type: 'email', placeholder: 'jean@exemple.fr' },
+                  ].map(({ key, label, type, placeholder }) => (
+                    <div key={key}>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: C.textDark, marginBottom: '0.4rem' }}>{label}</label>
+                      <input type={type} required placeholder={placeholder} value={form[key]}
+                        onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                        style={inputStyle}
+                        onFocus={e => { e.target.style.borderColor = C.accent; e.target.style.background = '#fff'; }}
+                        onBlur={e => { e.target.style.borderColor = '#E8E6E1'; e.target.style.background = '#FAFAF8'; }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: C.textDark, marginBottom: '0.4rem' }}>Sujet</label>
+                  <select value={form.sujet} required onChange={e => setForm(f => ({ ...f, sujet: e.target.value }))}
+                    style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}>
+                    <option value="">Sélectionnez un sujet</option>
+                    <option>Question sur mon dossier</option>
+                    <option>Problème technique</option>
+                    <option>Information sur les tarifs</option>
+                    <option>Partenariat</option>
+                    <option>Autre</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: C.textDark, marginBottom: '0.4rem' }}>Message</label>
+                  <textarea required placeholder="Décrivez votre demande en détail..." value={form.message}
+                    onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
+                    rows={5}
+                    style={{ ...inputStyle, resize: 'vertical' }}
+                    onFocus={e => { e.target.style.borderColor = C.accent; e.target.style.background = '#fff'; }}
+                    onBlur={e => { e.target.style.borderColor = '#E8E6E1'; e.target.style.background = '#FAFAF8'; }}
+                  />
+                </div>
+                <button type="submit" disabled={loading}
+                  style={{ background: loading ? '#ccc' : C.accent, color: C.textDark, border: 'none', padding: '1rem 2rem', borderRadius: '10px', fontFamily: F, fontWeight: 700, fontSize: '0.95rem', cursor: loading ? 'not-allowed' : 'pointer', transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  onMouseEnter={e => { if (!loading) e.currentTarget.style.background = C.accentHover; }}
+                  onMouseLeave={e => { if (!loading) e.currentTarget.style.background = C.accent; }}>
+                  {loading ? 'Envoi en cours…' : <>Envoyer le message <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg></>}
+                </button>
+                <p style={{ textAlign: 'center', fontSize: '0.78rem', color: C.textMuted, marginTop: '0.25rem' }}>
+                  🔒 Vos données sont protégées et ne seront jamais partagées.
+                </p>
+              </form>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ── Pages légales ──────────────────────────────────────────── */
 const LegalPage = ({ page, onBack }) => {
   const isMobile = useIsMobile();
@@ -1873,6 +1999,7 @@ export default function App() {
   if (paymentStatus === 'cancel') window.history.replaceState({}, '', '/');
 
   if (view === 'form')            return <FormPage onBack={() => nav('home')} user={user} />;
+  if (view === 'contact')         return <ContactPage onBack={() => nav('home')} />;
   if (view === 'faq')             return <FAQPage onBack={() => nav('home')} onGo={() => nav('form')} />;
   if (view === 'login')           return <LoginPage onBack={() => nav('home')} onRegister={() => nav('register')} onForgot={() => nav('forgot-password')} onSuccess={() => nav(user ? 'dashboard' : 'home')} />;
   if (view === 'register')        return <RegisterPage onBack={() => nav('home')} onLogin={() => nav('login')} onSuccess={() => nav('login')} />;
@@ -1880,9 +2007,10 @@ export default function App() {
   if (view === 'dashboard')       return <DashboardPage user={user} onBack={() => nav('home')} onNewLettre={() => nav('form')} />;
   if (['mentions', 'confidentialite', 'cgu'].includes(view)) return <LegalPage page={view} onBack={() => nav('home')} />;
 
-  const go      = () => nav('form');
-  const goFaq   = () => nav('faq');
-  const goLogin = () => nav('login');
+  const go        = () => nav('contact');
+  const goFaq     = () => nav('faq');
+  const goLogin   = () => nav('login');
+  const goContact = () => nav('contact');
 
   /* ── Shared styles ── */
   const container = {
@@ -2171,6 +2299,11 @@ export default function App() {
                       {label}
                     </div>
                   ))}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: C.textMuted, fontSize: '0.825rem' }}>
+                    <CheckCircle size={13} color={C.success} />
+                    Envoi sécurisé via
+                    <img src="/AR24.png" alt="AR24" style={{ height: '26px', width: 'auto', objectFit: 'contain', display: 'block' }} />
+                  </div>
                 </div>
               </Reveal>
             </div>
@@ -2180,20 +2313,22 @@ export default function App() {
 
       {/* ── SOLUTION ── */}
       <section id="solution" style={{ background: C.bg, padding: sectionPad }}>
-        <div style={container}>
+        <div style={{ ...container, maxWidth: '980px' }}>
           <Reveal>
             <div style={{
               background: '#fff',
               borderRadius: '20px',
               boxShadow: '0 8px 48px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.04)',
               overflow: 'hidden',
-              padding: isMobile ? '2rem 1.75rem' : '2.5rem 3rem',
+              padding: isMobile ? '2rem 1.75rem' : '2.5rem 4rem 2.5rem 3rem',
+              position: 'relative',
+              minHeight: isMobile ? 'auto' : '320px',
             }}>
-                <h2 style={{ fontFamily: F, fontSize: 'clamp(1.3rem, 2.2vw, 1.8rem)', fontWeight: 700, lineHeight: 1.2, color: C.textDark, marginBottom: '0.75rem' }}>
+                <h2 style={{ fontFamily: F, fontSize: '1.65rem', fontWeight: 700, lineHeight: 1.2, color: C.textDark, marginBottom: '0.875rem', whiteSpace: 'nowrap' }}>
                   Une solution simple pour faire valoir vos droits
                 </h2>
-                <p style={{ color: C.textMid, fontSize: '0.9rem', lineHeight: 1.65, marginBottom: '1.75rem' }}>
-                  La mise en demeure est l'étape clé pour obtenir un paiement ou résoudre un litige — sans avocat.
+                <p style={{ color: C.textMid, fontSize: '1rem', lineHeight: 1.7, marginBottom: '2rem', whiteSpace: 'nowrap' }}>
+                  La mise en demeure est l'étape clé pour obtenir un paiement ou résoudre un litige, sans avocat.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {[
@@ -2206,8 +2341,8 @@ export default function App() {
                         <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="#3BAD7A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </div>
                       <div>
-                        <p style={{ fontWeight: 700, color: C.textDark, fontSize: '0.875rem', marginBottom: '0.15rem' }}>{item.label}</p>
-                        <p style={{ color: C.textMid, fontSize: '0.8rem', lineHeight: 1.55 }}>{item.desc}</p>
+                        <p style={{ fontWeight: 700, color: C.textDark, fontSize: '0.95rem', marginBottom: '0.15rem' }}>{item.label}</p>
+                        <p style={{ color: C.textMid, fontSize: '0.875rem', lineHeight: 1.55 }}>{item.desc}</p>
                       </div>
                     </div>
                   ))}
@@ -2226,6 +2361,21 @@ export default function App() {
                   En savoir plus
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
+                {!isMobile && (
+                  <img
+                    src="/image tablette.png"
+                    alt="Aperçu mise en demeure"
+                    style={{
+                      position: 'absolute',
+                      bottom: '3.75rem',  // ← MONTER/DESCENDRE
+                      right: '4rem',     // ← GAUCHE/DROITE
+                      height: '200px',   // ← TAILLE
+                      width: 'auto',
+                      objectFit: 'contain',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                )}
             </div>
           </Reveal>
         </div>
@@ -2445,102 +2595,82 @@ export default function App() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: '#0B1120' }}>
-        <div style={{ ...container, padding: isMobile ? '3rem 1.25rem 2rem' : '4rem 2.5rem 2rem' }}>
+      <footer style={{ background: '#0F1629', fontFamily: F }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '3rem 1.5rem 0' : '4.5rem 2.5rem 0' }}>
 
-          {/* Grille principale */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr 1fr 1fr',
-            gap: isMobile ? '2.5rem' : '3rem',
-            paddingBottom: '2.5rem',
-            borderBottom: '1px solid rgba(255,255,255,0.07)',
-            marginBottom: '2rem',
-          }}>
+          {/* Grille 4 colonnes */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1.4fr 1fr 1.2fr 1.4fr', gap: isMobile ? '2.5rem 1.5rem' : '2rem 3rem', paddingBottom: '3rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
 
-            {/* Brand */}
+            {/* Col 1 — Navigation */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-                <img src="/LOGO.png" alt="Logo" style={{ height: '2rem', width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }} />
-                <span style={{ fontFamily: F, fontWeight: 700, color: '#F0EDE8', letterSpacing: '0.01em', lineHeight: 1.2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '1.1rem' }}>Mise en Demeure</span>
-                  <span style={{ fontSize: '0.72rem', color: C.accent, fontWeight: 600, letterSpacing: '0.04em' }}>rapide.fr</span>
-                </span>
-              </div>
-              <p style={{ color: '#B0AEA8', fontSize: '0.83rem', lineHeight: 1.7, maxWidth: '280px' }}>
-                Envoyez une mise en demeure conforme au droit français en 2 minutes, avec accusé de réception.
-              </p>
-            </div>
-
-            {/* Produit */}
-            <div>
-              <p style={{ fontFamily: F, fontWeight: 700, fontSize: '0.8rem', color: '#F0EDE8', marginBottom: '1.25rem' }}>Produit</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
+              <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#fff', marginBottom: '1.5rem' }}>Navigation</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
                 {[
-                  { label: 'Contactez-nous', action: () => go() },
+                  { label: 'Accueil', action: () => nav('home') },
                   { label: 'Comment ça marche', action: () => document.getElementById('comment-ca-marche')?.scrollIntoView({ behavior: 'smooth' }) },
                   { label: 'FAQ', action: () => goFaq() },
+                  { label: 'Contactez-nous', action: () => nav('contact') },
                 ].map(({ label, action }) => (
-                  <button key={label} onClick={action} style={{ background: 'none', border: 'none', color: '#B0AEA8', fontSize: '0.875rem', fontFamily: F, cursor: 'pointer', transition: 'color 0.2s', padding: 0, textAlign: 'left' }}
-                    onMouseEnter={e => e.currentTarget.style.color = '#F0EDE8'}
-                    onMouseLeave={e => e.currentTarget.style.color = '#B0AEA8'}>
-                    {label}
-                  </button>
+                  <button key={label} onClick={action} style={{ background: 'none', border: 'none', color: '#8A9BC0', fontSize: '0.875rem', fontFamily: F, cursor: 'pointer', transition: 'color 0.2s', padding: 0, textAlign: 'left' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                    onMouseLeave={e => e.currentTarget.style.color = '#8A9BC0'}>{label}</button>
                 ))}
               </div>
             </div>
 
-            {/* Légal */}
+            {/* Col 2 — Légal */}
             <div>
-              <p style={{ fontFamily: F, fontWeight: 700, fontSize: '0.8rem', color: '#F0EDE8', marginBottom: '1.25rem' }}>Légal</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
+              <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#fff', marginBottom: '1.5rem' }}>Légal</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
                 {[
                   { label: 'Conditions générales', v: 'cgu' },
-                  { label: 'Confidentialité', v: 'confidentialite' },
+                  { label: 'Politique de confidentialité', v: 'confidentialite' },
                   { label: 'Mentions légales', v: 'mentions' },
                 ].map(({ label, v }) => (
-                  <button key={label} onClick={() => setView(v)} style={{ background: 'none', border: 'none', color: '#B0AEA8', fontSize: '0.875rem', fontFamily: F, cursor: 'pointer', transition: 'color 0.2s', padding: 0, textAlign: 'left' }}
-                    onMouseEnter={e => e.currentTarget.style.color = '#F0EDE8'}
-                    onMouseLeave={e => e.currentTarget.style.color = '#B0AEA8'}>
-                    {label}
-                  </button>
+                  <button key={label} onClick={() => setView(v)} style={{ background: 'none', border: 'none', color: '#8A9BC0', fontSize: '0.875rem', fontFamily: F, cursor: 'pointer', transition: 'color 0.2s', padding: 0, textAlign: 'left' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                    onMouseLeave={e => e.currentTarget.style.color = '#8A9BC0'}>{label}</button>
                 ))}
               </div>
             </div>
 
-            {/* Assistance */}
+            {/* Col 3 — Service */}
             <div>
-              <p style={{ fontFamily: F, fontWeight: 700, fontSize: '0.8rem', color: '#F0EDE8', marginBottom: '1.25rem' }}>Assistance</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
-                {[
-                  { label: 'Contactez-nous', action: () => window.location.href = 'mailto:contact@misendemeure-rapide.fr' },
-                ].map(({ label, action }) => (
-                  <button key={label} onClick={action} style={{ background: 'none', border: 'none', color: '#B0AEA8', fontSize: '0.875rem', fontFamily: F, cursor: 'pointer', transition: 'color 0.2s', padding: 0, textAlign: 'left' }}
-                    onMouseEnter={e => e.currentTarget.style.color = '#F0EDE8'}
-                    onMouseLeave={e => e.currentTarget.style.color = '#B0AEA8'}>
-                    {label}
-                  </button>
+              <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#fff', marginBottom: '1.5rem' }}>Notre service</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+                {['Mise en demeure', 'Envoi LRAR certifié', 'Suivi en temps réel', 'Sans avocat requis'].map(label => (
+                  <span key={label} style={{ color: '#8A9BC0', fontSize: '0.875rem' }}>{label}</span>
                 ))}
               </div>
+            </div>
+
+            {/* Col 4 — Support client */}
+            <div>
+              <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#fff', marginBottom: '1.5rem' }}>Support client</p>
+              <p style={{ color: '#8A9BC0', fontSize: '0.85rem', lineHeight: 1.7, marginBottom: '1rem' }}>
+                Notre équipe est disponible pour répondre à toutes vos demandes.
+              </p>
+              <p style={{ color: '#8A9BC0', fontSize: '0.85rem', lineHeight: 1.7, marginBottom: '1.25rem' }}>
+                Du lundi au vendredi<br />de 9h00 à 18h00
+              </p>
             </div>
           </div>
 
-          {/* Bas : paiements + copyright */}
-          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1rem' }}>
-            <p style={{ color: '#6B6B6B', fontSize: '0.75rem' }}>
-              © 2026 misendemeure-rapide.fr — Tous droits réservés.
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.68rem', color: '#6B6B6B', whiteSpace: 'nowrap' }}>Paiement sécurisé</span>
-              <div style={{ background: '#fff', borderRadius: '4px', padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '52px', height: '28px' }}>
-                <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '0.8rem', color: '#635BFF' }}>stripe</span>
+          {/* Logos paiement centrés */}
+          <div style={{ padding: '2rem 0', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            {[{ src: '/Visa.png', alt: 'Visa' }, { src: '/Mastercard-logo.png', alt: 'Mastercard' }, { src: '/CB LOGO.jpg', alt: 'CB' }].map(({ src, alt }) => (
+              <div key={alt} style={{ background: '#fff', borderRadius: '6px', padding: '5px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '36px', width: '60px' }}>
+                <img src={src} alt={alt} style={{ maxHeight: '22px', maxWidth: '46px', objectFit: 'contain' }} />
               </div>
-              {[{ src: '/Visa.png', alt: 'Visa' }, { src: '/Mastercard-logo.png', alt: 'Mastercard' }, { src: '/CB LOGO.jpg', alt: 'CB' }].map(({ src, alt }) => (
-                <div key={alt} style={{ background: '#fff', borderRadius: '4px', padding: '4px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '52px', height: '28px' }}>
-                  <img src={src} alt={alt} style={{ maxHeight: '20px', maxWidth: '42px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
-                </div>
-              ))}
+            ))}
+            <div style={{ background: '#fff', borderRadius: '6px', padding: '5px 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '36px', width: '60px' }}>
+              <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#635BFF' }}>stripe</span>
             </div>
+          </div>
+
+          {/* Copyright */}
+          <div style={{ padding: '1.5rem 0', textAlign: 'center' }}>
+            <p style={{ color: '#4A5568', fontSize: '0.78rem' }}>© 2026 miseendemeure-rapide.fr — Tous droits réservés.</p>
           </div>
 
         </div>
