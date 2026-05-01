@@ -1396,6 +1396,247 @@ const LegalPage = ({ page, onBack }) => {
   );
 };
 
+/* ── Dashboard ───────────────────────────────────────────────── */
+const DashboardPage = ({ user, onBack, onNewLettre }) => {
+  const isMobile = useIsMobile();
+  const [tab, setTab]           = useState('lettres');
+  const [profile, setProfile]   = useState(null);
+  const [lettres, setLettres]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [saving, setSaving]     = useState(false);
+  const [saveMsg, setSaveMsg]   = useState('');
+  const [editProfile, setEditProfile] = useState({ prenom: '', nom: '', telephone: '' });
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      const [{ data: prof }, { data: lets }] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user.id).single(),
+        supabase.from('lettres').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+      ]);
+      if (prof) { setProfile(prof); setEditProfile({ prenom: prof.prenom || '', nom: prof.nom || '', telephone: prof.telephone || '' }); }
+      setLettres(lets || []);
+      setLoading(false);
+    };
+    load();
+  }, [user.id]);
+
+  const saveProfile = async () => {
+    setSaving(true); setSaveMsg('');
+    const { error } = await supabase.from('profiles').update(editProfile).eq('id', user.id);
+    setSaving(false);
+    setSaveMsg(error ? 'Erreur lors de la sauvegarde.' : 'Profil mis à jour ✓');
+    setTimeout(() => setSaveMsg(''), 3000);
+  };
+
+  const statusLabel = (s) => ({ brouillon: 'Brouillon', payee: 'Payée', envoyee: 'Envoyée', livree: 'Livrée' }[s] || s);
+  const statusColor = (s) => ({ brouillon: '#999', payee: C.accent, envoyee: '#3B82F6', livree: '#22C55E' }[s] || '#999');
+  const statusBg    = (s) => ({ brouillon: '#F3F4F6', payee: 'rgba(201,169,110,0.12)', envoyee: '#EFF6FF', livree: '#F0FDF4' }[s] || '#F3F4F6');
+
+  const prenom = profile?.prenom || user?.user_metadata?.prenom || '';
+  const nom    = profile?.nom    || user?.user_metadata?.nom    || '';
+
+  const inputStyle = {
+    width: '100%', boxSizing: 'border-box', padding: '0.8rem 1rem',
+    borderRadius: '8px', border: `1.5px solid ${C.borderLight}`,
+    fontFamily: F, fontSize: '0.9rem', color: C.textDark,
+    background: '#fff', outline: 'none', transition: 'border-color 0.2s',
+  };
+
+  const tabs = [
+    { id: 'lettres',     label: 'Mes lettres' },
+    { id: 'profil',      label: 'Mon profil' },
+    { id: 'abonnement',  label: 'Abonnement' },
+    { id: 'factures',    label: 'Factures' },
+  ];
+
+  return (
+    <div style={{ minHeight: '100vh', background: C.bgAlt, fontFamily: F }}>
+      {/* Header */}
+      <div style={{ background: '#fff', borderBottom: `1px solid ${C.borderLight}`, position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '1rem clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', padding: 0 }}>
+            <img src="/LOGO.png" alt="Logo" style={{ height: '1.75rem', width: 'auto' }} />
+            {!isMobile && (
+              <span style={{ fontFamily: F, fontWeight: 700, color: C.textDark, fontSize: '0.95rem', display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                <span>Mise en Demeure</span>
+                <span style={{ color: C.accent, fontSize: '0.7rem', letterSpacing: '0.04em' }}>rapide.fr</span>
+              </span>
+            )}
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 700, color: C.primary }}>
+              {(prenom[0] || user.email[0]).toUpperCase()}
+            </div>
+            {!isMobile && <span style={{ fontFamily: F, fontWeight: 600, color: C.textDark, fontSize: '0.9rem' }}>{prenom} {nom}</span>}
+            <button onClick={async () => { await supabase.auth.signOut(); onBack(); }} style={{ background: 'none', border: `1.5px solid ${C.borderLight}`, borderRadius: '7px', padding: '0.4rem 0.75rem', fontFamily: F, fontSize: '0.8rem', fontWeight: 600, color: '#EF4444', cursor: 'pointer' }}>
+              Déconnexion
+            </button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 clamp(1.25rem, 5vw, 2.5rem)', display: 'flex', gap: 0, overflowX: 'auto' }}>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{
+              background: 'none', border: 'none', borderBottom: `2px solid ${tab === t.id ? C.accent : 'transparent'}`,
+              padding: '0.875rem 1.25rem', fontFamily: F, fontWeight: tab === t.id ? 700 : 500,
+              fontSize: '0.875rem', color: tab === t.id ? C.textDark : '#888',
+              cursor: 'pointer', transition: 'all 0.2s', whiteSpace: 'nowrap',
+            }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: isMobile ? '2rem 1.25rem' : '3rem clamp(1.25rem, 5vw, 2.5rem)' }}>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '4rem', color: '#999' }}>Chargement…</div>
+        ) : (
+
+          <>
+            {/* ── MES LETTRES ── */}
+            {tab === 'lettres' && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div>
+                    <h1 style={{ fontFamily: F, fontSize: '1.5rem', fontWeight: 700, color: C.textDark, marginBottom: '0.25rem' }}>Mes mises en demeure</h1>
+                    <p style={{ color: '#888', fontSize: '0.875rem' }}>{lettres.length} lettre{lettres.length !== 1 ? 's' : ''}</p>
+                  </div>
+                  <button onClick={onNewLettre} style={{ background: C.accent, color: C.primary, padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', fontFamily: F, fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    Nouvelle lettre
+                  </button>
+                </div>
+
+                {lettres.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '5rem 2rem', background: '#fff', borderRadius: '16px', border: `1px solid ${C.borderLight}` }}>
+                    <div style={{ width: '64px', height: '64px', background: C.bgAlt, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+                    </div>
+                    <p style={{ fontWeight: 700, color: C.textDark, fontSize: '1rem', marginBottom: '0.5rem' }}>Aucune lettre pour l'instant</p>
+                    <p style={{ color: '#888', fontSize: '0.875rem', marginBottom: '1.75rem' }}>Créez votre première mise en demeure en 2 minutes.</p>
+                    <button onClick={onNewLettre} style={{ background: C.accent, color: C.primary, padding: '0.75rem 1.75rem', borderRadius: '8px', border: 'none', fontFamily: F, fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer' }}>
+                      Créer ma première lettre
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {lettres.map(l => (
+                      <div key={l.id} style={{ background: '#fff', borderRadius: '12px', border: `1px solid ${C.borderLight}`, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: 700, color: C.textDark, fontSize: '0.925rem' }}>{l.destinataire_nom || 'Destinataire inconnu'}</span>
+                            <span style={{ background: statusBg(l.statut), color: statusColor(l.statut), fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '20px' }}>
+                              {statusLabel(l.statut)}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#888' }}>
+                              {new Date(l.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            </span>
+                            {l.montant && <span style={{ fontSize: '0.8rem', color: '#888' }}>{Number(l.montant).toLocaleString('fr-FR')} €</span>}
+                            {l.tracking_id && <span style={{ fontSize: '0.8rem', color: '#aaa', fontFamily: 'monospace' }}>#{l.tracking_id}</span>}
+                          </div>
+                        </div>
+                        {l.litige && (
+                          <span style={{ fontSize: '0.78rem', color: '#999', background: C.bgAlt, padding: '0.3rem 0.7rem', borderRadius: '6px', whiteSpace: 'nowrap' }}>
+                            {{ facture: 'Facture impayée', loyer: 'Loyer impayé', caution: 'Caution', travaux: 'Travaux', remboursement: 'Remboursement', autre: 'Autre' }[l.litige] || l.litige}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── MON PROFIL ── */}
+            {tab === 'profil' && (
+              <div style={{ maxWidth: '580px' }}>
+                <h1 style={{ fontFamily: F, fontSize: '1.5rem', fontWeight: 700, color: C.textDark, marginBottom: '0.25rem' }}>Mon profil</h1>
+                <p style={{ color: '#888', fontSize: '0.875rem', marginBottom: '2rem' }}>Vos informations personnelles.</p>
+
+                <div style={{ background: '#fff', borderRadius: '16px', border: `1px solid ${C.borderLight}`, padding: isMobile ? '1.75rem 1.5rem' : '2.25rem 2.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.4rem' }}>Prénom</label>
+                      <input value={editProfile.prenom} onChange={e => setEditProfile(p => ({ ...p, prenom: e.target.value }))} style={inputStyle}
+                        onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.4rem' }}>Nom</label>
+                      <input value={editProfile.nom} onChange={e => setEditProfile(p => ({ ...p, nom: e.target.value }))} style={inputStyle}
+                        onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.4rem' }}>Adresse e-mail</label>
+                    <input value={user.email} disabled style={{ ...inputStyle, background: C.bgAlt, color: '#888', cursor: 'not-allowed' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: C.textDark, marginBottom: '0.4rem' }}>Téléphone <span style={{ fontWeight: 400, color: '#999' }}>(optionnel)</span></label>
+                    <input value={editProfile.telephone} onChange={e => setEditProfile(p => ({ ...p, telephone: e.target.value }))} placeholder="+33 6 00 00 00 00" style={inputStyle}
+                      onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingTop: '0.5rem', flexWrap: 'wrap' }}>
+                    <button onClick={saveProfile} disabled={saving} style={{ background: C.primary, color: '#fff', padding: '0.75rem 1.75rem', borderRadius: '8px', border: 'none', fontFamily: F, fontWeight: 700, fontSize: '0.875rem', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+                      {saving ? 'Sauvegarde…' : 'Sauvegarder'}
+                    </button>
+                    {saveMsg && <span style={{ fontSize: '0.85rem', color: saveMsg.includes('Erreur') ? '#EF4444' : '#22C55E', fontWeight: 600 }}>{saveMsg}</span>}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── ABONNEMENT ── */}
+            {tab === 'abonnement' && (
+              <div style={{ maxWidth: '580px' }}>
+                <h1 style={{ fontFamily: F, fontSize: '1.5rem', fontWeight: 700, color: C.textDark, marginBottom: '0.25rem' }}>Mon abonnement</h1>
+                <p style={{ color: '#888', fontSize: '0.875rem', marginBottom: '2rem' }}>Votre plan actuel.</p>
+                <div style={{ background: '#fff', borderRadius: '16px', border: `1px solid ${C.borderLight}`, padding: isMobile ? '1.75rem 1.5rem' : '2.25rem 2.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.75rem' }}>
+                    <div style={{ background: C.bgAlt, borderRadius: '10px', padding: '0.75rem' }}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                    </div>
+                    <div>
+                      <p style={{ fontWeight: 700, color: C.textDark, fontSize: '1rem', marginBottom: '0.15rem' }}>Plan Gratuit</p>
+                      <p style={{ color: '#888', fontSize: '0.825rem' }}>Accès one-shot — 19,99 € par lettre</p>
+                    </div>
+                  </div>
+                  <div style={{ background: C.bgAlt, borderRadius: '10px', padding: '1.25rem 1.5rem', border: `1px dashed ${C.borderLight}` }}>
+                    <p style={{ fontWeight: 700, color: C.textDark, fontSize: '0.9rem', marginBottom: '0.35rem' }}>Offres à venir</p>
+                    <p style={{ color: '#888', fontSize: '0.825rem', lineHeight: 1.6 }}>Des plans d'abonnement avec tarifs réduits et fonctionnalités avancées seront disponibles prochainement.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── FACTURES ── */}
+            {tab === 'factures' && (
+              <div>
+                <h1 style={{ fontFamily: F, fontSize: '1.5rem', fontWeight: 700, color: C.textDark, marginBottom: '0.25rem' }}>Mes factures</h1>
+                <p style={{ color: '#888', fontSize: '0.875rem', marginBottom: '2rem' }}>Historique de vos paiements.</p>
+                <div style={{ textAlign: 'center', padding: '5rem 2rem', background: '#fff', borderRadius: '16px', border: `1px solid ${C.borderLight}` }}>
+                  <div style={{ width: '64px', height: '64px', background: C.bgAlt, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                  </div>
+                  <p style={{ fontWeight: 700, color: C.textDark, fontSize: '1rem', marginBottom: '0.5rem' }}>Aucune facture pour l'instant</p>
+                  <p style={{ color: '#888', fontSize: '0.875rem' }}>Vos factures apparaîtront ici après votre premier paiement.</p>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
 /* ── App ────────────────────────────────────────────────────── */
 export default function App() {
   const isMobile = useIsMobile();
@@ -1429,9 +1670,10 @@ export default function App() {
 
   if (view === 'form')            return <FormPage onBack={() => nav('home')} />;
   if (view === 'faq')             return <FAQPage onBack={() => nav('home')} onGo={() => nav('form')} />;
-  if (view === 'login')           return <LoginPage onBack={() => nav('home')} onRegister={() => nav('register')} onForgot={() => nav('forgot-password')} onSuccess={() => nav('home')} />;
+  if (view === 'login')           return <LoginPage onBack={() => nav('home')} onRegister={() => nav('register')} onForgot={() => nav('forgot-password')} onSuccess={() => nav(user ? 'dashboard' : 'home')} />;
   if (view === 'register')        return <RegisterPage onBack={() => nav('home')} onLogin={() => nav('login')} onSuccess={() => nav('login')} />;
   if (view === 'forgot-password') return <ForgotPasswordPage onBack={() => nav('home')} onLogin={() => nav('login')} />;
+  if (view === 'dashboard')       return <DashboardPage user={user} onBack={() => nav('home')} onNewLettre={() => nav('form')} />;
   if (['mentions', 'confidentialite', 'cgu'].includes(view)) return <LegalPage page={view} onBack={() => nav('home')} />;
 
   const go      = () => nav('form');
