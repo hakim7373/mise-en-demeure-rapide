@@ -1361,7 +1361,7 @@ const ContactPage = ({ onBack }) => {
     <div style={{ minHeight: '100vh', background: '#fff', fontFamily: F }}>
       <AuthTopBar onBack={onBack} />
 
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '3rem 1.5rem 5rem' : '5rem 2rem 7rem', display: isMobile ? 'block' : 'grid', gridTemplateColumns: '1fr 1fr', gap: '5rem', alignItems: 'start' }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '3rem 1.5rem 5rem' : '5rem 2rem 7rem', display: isMobile ? 'block' : 'grid', gridTemplateColumns: '1fr 1fr', gap: '5rem', alignItems: 'center' }}>
 
         {/* Colonne gauche — infos */}
         <div>
