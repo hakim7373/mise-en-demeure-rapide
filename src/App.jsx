@@ -2835,7 +2835,7 @@ export default function App() {
             <Reveal>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '2rem' : '5rem', alignItems: 'center' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                  <img src="/etape 3.png" alt="Étape 3" style={{ width: '100%', maxWidth: '320px', borderRadius: '12px', objectFit: 'contain', transform: 'translateY(-1.5rem)' }} />
+                  <img src="/etape 3.png" alt="Étape 3" style={{ width: '100%', maxWidth: '320px', borderRadius: '12px', objectFit: 'contain', transform: 'translateY(-0.75rem)' }} />
                 </div>
                 <div>
                   <p style={{ fontFamily: F, fontSize: '4rem', fontWeight: 700, color: C.accent, opacity: 0.2, lineHeight: 1, marginBottom: '0.5rem', userSelect: 'none' }}>03</p>
