@@ -1373,23 +1373,6 @@ const ContactPage = ({ onBack }) => {
             Notre équipe est disponible pour répondre à toutes vos questions concernant nos services, la mise en demeure ou votre dossier en cours.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            {[
-              { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>, label: 'Email', value: 'contact@miseendemeure-rapide.fr' },
-              { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>, label: 'Délai de réponse', value: 'Sous 24h ouvrées' },
-              { icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>, label: 'Service', value: '100% en ligne — France entière' },
-            ].map(({ icon, label, value }) => (
-              <div key={label} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(201,169,110,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: C.accent }}>
-                  {icon}
-                </div>
-                <div>
-                  <p style={{ fontSize: '0.78rem', fontWeight: 600, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>{label}</p>
-                  <p style={{ fontSize: '0.95rem', fontWeight: 600, color: C.textDark }}>{value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Colonne droite — formulaire */}
