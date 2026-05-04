@@ -2792,7 +2792,7 @@ export default function App() {
             <Reveal>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '2rem' : '5rem', alignItems: 'center' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                  <div style={{ width: '100%', maxWidth: '320px' }}><IlluForm /></div>
+                  <img src="/etape 1.png" alt="Étape 1" style={{ width: '100%', maxWidth: '320px', borderRadius: '12px', objectFit: 'contain' }} />
                 </div>
                 <div>
                   <p style={{ fontFamily: F, fontSize: '4rem', fontWeight: 700, color: C.accent, opacity: 0.2, lineHeight: 1, marginBottom: '0.5rem', userSelect: 'none' }}>01</p>
@@ -2811,7 +2811,7 @@ export default function App() {
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '2rem' : '5rem', alignItems: 'center' }}>
                 {isMobile && (
                   <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                    <div style={{ width: '100%', maxWidth: '320px' }}><IlluEnvoi /></div>
+                    <img src="/etape 2.png" alt="Étape 2" style={{ width: '100%', maxWidth: '320px', borderRadius: '12px', objectFit: 'contain' }} />
                   </div>
                 )}
                 <div>
@@ -2825,7 +2825,7 @@ export default function App() {
                 </div>
                 {!isMobile && (
                   <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                    <IlluEnvoi />
+                    <img src="/etape 2.png" alt="Étape 2" style={{ width: '100%', maxWidth: '320px', borderRadius: '12px', objectFit: 'contain' }} />
                   </div>
                 )}
               </div>
@@ -2835,7 +2835,7 @@ export default function App() {
             <Reveal>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '2rem' : '5rem', alignItems: 'center' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                  <div style={{ width: '100%', maxWidth: '320px' }}><IlluRelance /></div>
+                  <img src="/etape 3.png" alt="Étape 3" style={{ width: '100%', maxWidth: '320px', borderRadius: '12px', objectFit: 'contain' }} />
                 </div>
                 <div>
                   <p style={{ fontFamily: F, fontSize: '4rem', fontWeight: 700, color: C.accent, opacity: 0.2, lineHeight: 1, marginBottom: '0.5rem', userSelect: 'none' }}>03</p>
