@@ -1966,8 +1966,8 @@ const DashboardPage = ({ user, onBack, onNewLettre }) => {
               {(prenom[0] || user.email[0]).toUpperCase()}
             </div>
             {!isMobile && <span style={{ fontFamily: F, fontWeight: 600, color: C.textDark, fontSize: '0.9rem' }}>{prenom} {nom}</span>}
-            <button onClick={async () => { await supabase.auth.signOut(); onBack(); }} style={{ background: 'none', border: `1.5px solid ${C.borderLight}`, borderRadius: '7px', padding: '0.4rem 0.75rem', fontFamily: F, fontSize: '0.8rem', fontWeight: 600, color: '#EF4444', cursor: 'pointer' }}>
-              Déconnexion
+            <button onClick={async () => { await supabase.auth.signOut(); onBack(); }} title="Déconnexion" style={{ background: 'none', border: `1.5px solid ${C.borderLight}`, borderRadius: '8px', padding: '0.4rem 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF4444' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
           </div>
         </div>
