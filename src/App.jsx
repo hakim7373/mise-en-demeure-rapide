@@ -1267,11 +1267,12 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ letterData: data, email: data.email, userId: user?.id || null }),
                   });
-                  const { url, error } = await res.json();
-                  if (error) throw new Error(error);
-                  window.location.href = url;
+                  const json = await res.json();
+                  if (json.error) throw new Error(json.error);
+                  if (!json.url) throw new Error(`Réponse inattendue (status ${res.status})`);
+                  window.location.href = json.url;
                 } catch (err) {
-                  setPaymentError('Une erreur est survenue. Réessayez.');
+                  setPaymentError(err.message || 'Une erreur est survenue. Réessayez.');
                   setPaymentLoading(false);
                 }
               }}
