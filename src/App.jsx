@@ -2015,10 +2015,7 @@ const DashboardPage = ({ user, onBack, onNewLettre }) => {
                       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
                     </div>
                     <p style={{ fontWeight: 700, color: C.textDark, fontSize: '1rem', marginBottom: '0.5rem' }}>Aucune lettre pour l'instant</p>
-                    <p style={{ color: '#888', fontSize: '0.875rem', marginBottom: '1.75rem' }}>Créez votre première mise en demeure en 2 minutes.</p>
-                    <button onClick={onNewLettre} style={{ background: C.accent, color: C.primary, padding: '0.75rem 1.75rem', borderRadius: '8px', border: 'none', fontFamily: F, fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer' }}>
-                      Créer ma première lettre
-                    </button>
+                    <p style={{ color: '#888', fontSize: '0.875rem' }}>Créez votre première mise en demeure en 2 minutes.</p>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
