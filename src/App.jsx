@@ -1199,8 +1199,17 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
               return (
               <div style={{ background: '#e8e8e4', padding: '1.5rem', marginBottom: '2rem', borderRadius: '12px', display: 'flex', justifyContent: 'center' }}>
                 <div style={{ width: A4W * scale, height: A4H * scale, position: 'relative', overflow: 'hidden', boxShadow: '0 8px 40px rgba(0,0,0,0.18)', flexShrink: 0 }}>
-                  {/* Overlay de protection — dégradé simple */}
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '75%', background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.75) 25%, rgba(255,255,255,0.97) 55%, #fff 70%)', zIndex: 10, pointerEvents: 'none' }} />
+                  {/* Overlay flou — contenu protégé */}
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '62%', zIndex: 10, pointerEvents: 'none',
+                    backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+                    background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.4) 30%, rgba(255,255,255,0.75) 100%)',
+                  }}>
+                    <div style={{ position: 'absolute', top: '38%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+                      <div style={{ background: 'rgba(255,255,255,0.85)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.primary} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                      </div>
+                    </div>
+                  </div>
                   <div style={{
                     background: '#fff',
                     width: A4W, height: A4H,
