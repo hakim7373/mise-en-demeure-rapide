@@ -1199,6 +1199,8 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
               return (
               <div style={{ background: '#e8e8e4', padding: '1.5rem', marginBottom: '2rem', borderRadius: '12px', display: 'flex', justifyContent: 'center' }}>
                 <div style={{ width: A4W * scale, height: A4H * scale, position: 'relative', overflow: 'hidden', boxShadow: '0 8px 40px rgba(0,0,0,0.18)', flexShrink: 0 }}>
+                  {/* Overlay de protection — dégradé simple */}
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.9) 45%, #fff 100%)', zIndex: 10, pointerEvents: 'none' }} />
                   <div style={{
                     background: '#fff',
                     width: A4W, height: A4H,
