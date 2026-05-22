@@ -1192,13 +1192,17 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
               Relisez votre mise en demeure avant de l'envoyer.
             </p>
 
-            {/* Lettre */}
+            {/* Lettre format A4 */}
+            <div style={{ background: '#f0f0ec', padding: '2rem 1rem', marginBottom: '2rem', borderRadius: '12px' }}>
             <div style={{
-              background: '#fff', border: `1px solid ${C.borderLight}`, borderRadius: '12px',
-              padding: isMobile ? '2rem 1.5rem' : '3rem 3.5rem',
-              fontFamily: "'DM Sans', sans-serif", fontSize: '0.92rem', lineHeight: 1.75,
-              color: '#111', marginBottom: '2rem',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+              background: '#fff',
+              width: '210mm', maxWidth: '100%', minHeight: '297mm',
+              margin: '0 auto',
+              padding: '25mm 20mm 25mm 25mm',
+              fontFamily: "'DM Sans', sans-serif", fontSize: '11pt', lineHeight: 1.7,
+              color: '#111',
+              boxShadow: '0 4px 32px rgba(0,0,0,0.12)',
+              boxSizing: 'border-box',
             }}>
               {/* Expéditeur */}
               <div style={{ marginBottom: '2.5rem' }}>
@@ -1240,6 +1244,7 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
 
               {/* Signature */}
               <div style={{ fontWeight: 700 }}>{data.expediteurNom}</div>
+            </div>
             </div>
 
             {/* Récap infos */}
