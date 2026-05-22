@@ -1209,6 +1209,7 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
                     padding: '96px 90px 96px 96px',
                     fontFamily: "'DM Sans', sans-serif", fontSize: '13px', lineHeight: 1.75,
                     color: '#111', boxSizing: 'border-box',
+                    userSelect: 'none', WebkitUserSelect: 'none',
                   }}>
               {/* Bloc expéditeur — gauche */}
               <div style={{ marginBottom: '3rem' }}>
