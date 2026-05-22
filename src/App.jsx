@@ -1192,19 +1192,22 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
               Relisez votre mise en demeure avant de l'envoyer.
             </p>
 
-            {/* Lettre format A4 */}
-            <div style={{ background: '#e8e8e4', padding: '2.5rem 1.5rem', marginBottom: '2rem', borderRadius: '12px', overflowX: 'auto' }}>
-            <div style={{
-              background: '#fff',
-              width: '794px', minHeight: '1123px',
-              margin: '0 auto',
-              padding: '96px 90px 96px 96px',
-              fontFamily: "'DM Sans', sans-serif", fontSize: '13px', lineHeight: 1.75,
-              color: '#111',
-              boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
-              boxSizing: 'border-box',
-              flexShrink: 0,
-            }}>
+            {/* Lettre format A4 — vrai A4 réduit pour l'aperçu */}
+            {(() => {
+              const A4W = 794, A4H = 1123;
+              const scale = isMobile ? 0.42 : 0.68;
+              return (
+              <div style={{ background: '#e8e8e4', padding: '1.5rem', marginBottom: '2rem', borderRadius: '12px', display: 'flex', justifyContent: 'center' }}>
+                <div style={{ width: A4W * scale, height: A4H * scale, position: 'relative', overflow: 'hidden', boxShadow: '0 8px 40px rgba(0,0,0,0.18)', flexShrink: 0 }}>
+                  <div style={{
+                    background: '#fff',
+                    width: A4W, height: A4H,
+                    position: 'absolute', top: 0, left: 0,
+                    transform: `scale(${scale})`, transformOrigin: 'top left',
+                    padding: '96px 90px 96px 96px',
+                    fontFamily: "'DM Sans', sans-serif", fontSize: '13px', lineHeight: 1.75,
+                    color: '#111', boxSizing: 'border-box',
+                  }}>
               {/* Expéditeur */}
               <div style={{ marginBottom: '2.5rem' }}>
                 <div style={{ fontWeight: 700 }}>{data.expediteurNom}</div>
@@ -1247,6 +1250,9 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
               <div style={{ fontWeight: 700 }}>{data.expediteurNom}</div>
             </div>
             </div>
+            </div>
+              );
+            })()}
 
             {/* Récap infos */}
             <div style={{ background: 'rgba(201,169,110,0.07)', border: `1px solid rgba(201,169,110,0.25)`, borderRadius: '10px', padding: '1rem 1.25rem', marginBottom: '2rem', fontSize: '0.85rem', color: C.textMid }}>
