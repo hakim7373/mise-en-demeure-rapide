@@ -1193,16 +1193,17 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
             </p>
 
             {/* Lettre format A4 */}
-            <div style={{ background: '#f0f0ec', padding: '2rem 1rem', marginBottom: '2rem', borderRadius: '12px' }}>
+            <div style={{ background: '#e8e8e4', padding: '2.5rem 1.5rem', marginBottom: '2rem', borderRadius: '12px', overflowX: 'auto' }}>
             <div style={{
               background: '#fff',
-              width: '210mm', maxWidth: '100%', minHeight: '297mm',
+              width: '794px', minHeight: '1123px',
               margin: '0 auto',
-              padding: '25mm 20mm 25mm 25mm',
-              fontFamily: "'DM Sans', sans-serif", fontSize: '11pt', lineHeight: 1.7,
+              padding: '96px 90px 96px 96px',
+              fontFamily: "'DM Sans', sans-serif", fontSize: '13px', lineHeight: 1.75,
               color: '#111',
-              boxShadow: '0 4px 32px rgba(0,0,0,0.12)',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
               boxSizing: 'border-box',
+              flexShrink: 0,
             }}>
               {/* Expéditeur */}
               <div style={{ marginBottom: '2.5rem' }}>
