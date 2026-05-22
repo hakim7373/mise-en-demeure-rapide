@@ -1203,6 +1203,8 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
                   <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '62%', zIndex: 10, pointerEvents: 'none',
                     backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
                     background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.4) 30%, rgba(255,255,255,0.75) 100%)',
+                    maskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
                   }}>
                     <div style={{ position: 'absolute', top: '38%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
                       <div style={{ background: 'rgba(255,255,255,0.85)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.1)' }}>
