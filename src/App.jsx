@@ -1208,23 +1208,25 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
                     fontFamily: "'DM Sans', sans-serif", fontSize: '13px', lineHeight: 1.75,
                     color: '#111', boxSizing: 'border-box',
                   }}>
-              {/* Expéditeur */}
-              <div style={{ marginBottom: '2.5rem' }}>
+              {/* Bloc expéditeur — gauche */}
+              <div style={{ marginBottom: '3rem' }}>
                 <div style={{ fontWeight: 700 }}>{data.expediteurNom}</div>
                 <div>{data.expediteurAdresse}</div>
                 <div>{data.expediteurCP} {data.expediteurVille}</div>
               </div>
 
-              {/* Destinataire + date */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2.5rem' }}>
-                <div>
+              {/* Bloc destinataire — droite (norme française) */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '3rem' }}>
+                <div style={{ textAlign: 'left' }}>
                   <div style={{ fontWeight: 700 }}>{data.destinataireNom}</div>
                   <div>{data.destinataireAdresse}</div>
                   <div>{data.destinataireCP} {data.destinataireVille}</div>
                 </div>
-                <div style={{ textAlign: 'right', color: '#555' }}>
-                  <div>{data.expediteurVille || 'Ville'}, le {today}</div>
-                </div>
+              </div>
+
+              {/* Lieu et date — droite */}
+              <div style={{ textAlign: 'right', color: '#555', marginBottom: '2.5rem' }}>
+                {data.expediteurVille || 'Ville'}, le {today}
               </div>
 
               {/* Objet */}
