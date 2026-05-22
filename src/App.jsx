@@ -1285,7 +1285,7 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
               }}>
               {paymentLoading
                 ? 'Redirection vers le paiement…'
-                : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>Envoyer cette lettre — 19,99 €</>
+                : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>Envoyer ma lettre</>
               }
             </button>
             <p style={{ textAlign: 'center', fontSize: '0.78rem', color: C.textMuted, marginTop: '0.75rem' }}>
