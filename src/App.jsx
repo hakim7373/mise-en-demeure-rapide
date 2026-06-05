@@ -854,10 +854,2359 @@ const IlluRelance = () => (
   </div>
 );
 
+/* ── Sous-composants partagés Facture form ───────────────────── */
+const FField = ({ label, hint, children }) => (
+  <div>
+    <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: C.textDark, marginBottom: '0.4rem' }}>
+      {label}{hint && <span style={{ fontWeight: 400, color: '#999', marginLeft: '0.4rem' }}>{hint}</span>}
+    </label>
+    {children}
+  </div>
+);
+
+const FTypeBtn = ({ active, onClick, label, sub }) => (
+  <button type="button" onClick={onClick} style={{
+    flex: 1, padding: '1rem', borderRadius: '10px', cursor: 'pointer',
+    border: `2px solid ${active ? C.accent : C.borderLight}`,
+    background: active ? 'rgba(201,169,110,0.07)' : '#fff',
+    fontFamily: F, textAlign: 'center', transition: 'all 0.15s',
+  }}>
+    <div style={{ fontWeight: 700, color: active ? C.accent : C.textDark, fontSize: '0.95rem' }}>{label}</div>
+    {sub && <div style={{ fontSize: '0.75rem', color: C.textMuted, marginTop: '0.25rem' }}>{sub}</div>}
+  </button>
+);
+
+const FCheckbox = ({ checked, onChange }) => (
+  <button type="button" onClick={onChange} style={{
+    flexShrink: 0, width: '22px', height: '22px', borderRadius: '6px',
+    border: `2px solid ${checked ? C.accent : C.borderLight}`,
+    background: checked ? C.accent : '#fff', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    marginTop: '1px', transition: 'all 0.15s',
+  }}>
+    {checked && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>}
+  </button>
+);
+
+const FUploadZone = ({ label, hint, required, files, onAdd, onRemove }) => {
+  const [dragging, setDragging] = React.useState(false);
+  const inputRef = React.useRef(null);
+  const handleDrop = (e) => {
+    e.preventDefault(); setDragging(false);
+    const newFiles = Array.from(e.dataTransfer.files).filter(f => f.size <= 10 * 1024 * 1024);
+    if (newFiles.length) onAdd(newFiles);
+  };
+  const handleChange = (e) => {
+    const newFiles = Array.from(e.target.files).filter(f => f.size <= 10 * 1024 * 1024);
+    if (newFiles.length) onAdd(newFiles);
+    e.target.value = '';
+  };
+  return (
+    <div style={{ marginBottom: '1.25rem' }}>
+      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: C.textDark, marginBottom: '0.5rem' }}>
+        {label}{required && <span style={{ color: C.accent, marginLeft: '0.2rem' }}>*</span>}{hint && <span style={{ fontWeight: 400, color: '#999', marginLeft: '0.4rem' }}>{hint}</span>}
+      </label>
+      <div onClick={() => inputRef.current?.click()}
+        onDragOver={e => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
+        style={{ border: `2px dashed ${dragging ? C.accent : C.borderLight}`, borderRadius: '10px', padding: '1.1rem 1rem', textAlign: 'center', cursor: 'pointer', background: dragging ? 'rgba(201,169,110,0.06)' : '#fafafa', transition: 'all 0.15s' }}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={C.textMuted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto 0.35rem' }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style={{ fontSize: '0.82rem', color: C.textMuted }}>Cliquez ou glissez vos fichiers ici</div>
+        <div style={{ fontSize: '0.72rem', color: '#bbb', marginTop: '0.15rem' }}>PDF, JPG, PNG · 10 Mo max par fichier</div>
+      </div>
+      <input ref={inputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }} onChange={handleChange} />
+      {files.length > 0 && (
+        <div style={{ marginTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          {files.map((file, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.45rem 0.75rem', background: '#f4f4f0', borderRadius: '7px', fontSize: '0.8rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: C.textDark, overflow: 'hidden', minWidth: 0 }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                <span style={{ color: '#aaa', flexShrink: 0 }}>({(file.size / 1024).toFixed(0)} Ko)</span>
+              </div>
+              <button type="button" onClick={e => { e.stopPropagation(); onRemove(i); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#aaa', padding: '2px 0 2px 8px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const SignaturePad = ({ onChange }) => {
+  const canvasRef  = React.useRef(null);
+  const drawing    = React.useRef(false);
+  const lastPos    = React.useRef(null);
+  const hasMark    = React.useRef(false);
+
+  const xy = (e, canvas) => {
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches?.[0] ?? e;
+    return [(t.clientX - r.left) * canvas.width / r.width, (t.clientY - r.top) * canvas.height / r.height];
+  };
+  const start = e => { e.preventDefault(); drawing.current = true; lastPos.current = xy(e, canvasRef.current); };
+  const move  = e => {
+    e.preventDefault();
+    if (!drawing.current) return;
+    const cvs = canvasRef.current, ctx = cvs.getContext('2d');
+    const [x, y] = xy(e, cvs);
+    ctx.beginPath(); ctx.moveTo(lastPos.current[0], lastPos.current[1]); ctx.lineTo(x, y);
+    ctx.strokeStyle = '#1A1A2E'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+    lastPos.current = [x, y]; hasMark.current = true;
+  };
+  const end   = () => { if (!drawing.current) return; drawing.current = false; if (hasMark.current) onChange(canvasRef.current.toDataURL()); };
+  const clear = () => { const cvs = canvasRef.current; cvs.getContext('2d').clearRect(0,0,cvs.width,cvs.height); hasMark.current = false; onChange(null); };
+
+  return (
+    <div style={{ background: '#fafafa', border: `1.5px dashed ${C.borderLight}`, borderRadius: '10px', padding: '0.875rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: C.textDark }}>Dessinez votre signature</span>
+        <button type="button" onClick={clear} style={{ fontSize: '0.75rem', color: C.accent, background: 'none', border: 'none', cursor: 'pointer', fontFamily: F, fontWeight: 600 }}>Effacer</button>
+      </div>
+      <canvas ref={canvasRef} width={560} height={120}
+        onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end}
+        onTouchStart={start} onTouchMove={move} onTouchEnd={end}
+        style={{ display: 'block', width: '100%', height: '100px', cursor: 'crosshair', background: '#fff', borderRadius: '6px', border: '1px solid #eee', touchAction: 'none' }}
+      />
+      <div style={{ fontSize: '0.7rem', color: '#bbb', marginTop: '0.35rem', textAlign: 'center' }}>Signez avec votre souris ou votre doigt</div>
+    </div>
+  );
+};
+
+/* ── Formulaire Facture Impayée (9 étapes) ───────────────────── */
+const FactureImpayeeForm = ({ onBack, user }) => {
+  const isMobile = useIsMobile();
+  const [step, setStep] = useState(1);
+  const TOTAL = 9;
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError]     = useState('');
+  const [showFullLetter, setShowFullLetter] = useState(false);
+  const [signature, setSignature]           = useState(null);
+  const [letterH, setLetterH]               = useState(0);
+  const [breakPoints, setBreakPoints]       = useState([]);
+  const letterInnerRef = useRef(null);
+
+  useEffect(() => {
+    const el = letterInnerRef.current;
+    if (!el) return;
+    const h = el.offsetHeight;
+    if (h === 0) return;
+
+    const CONT_H = 1123 - 80 * 2; // 963px utiles par page
+
+    // getBoundingClientRect() donne des positions viewport-relatives.
+    // On soustrait le top du conteneur pour obtenir des positions relatives à lui.
+    const containerTop = el.getBoundingClientRect().top;
+
+    // Recherche récursive du meilleur saut de page avant targetY.
+    // On descend dans les <div> pour trouver les vrais blocs (paragraphes, tables…).
+    // Les éléments p / table / img sont traités comme atomiques (pas de coupure dedans).
+    function findBreakY(parent, targetY) {
+      let best = 0;
+      for (const child of parent.children) {
+        const r = child.getBoundingClientRect();
+        const top    = r.top    - containerTop;
+        const bottom = r.bottom - containerTop;
+
+        if (bottom <= targetY) {
+          best = bottom; // bloc entier avant la coupure
+        } else if (top < targetY) {
+          // Ce bloc chevauche la coupure
+          const tag = child.tagName.toLowerCase();
+          if (tag === 'div' && child.children.length > 0) {
+            // Récursion dans les divs (ex : blur-div contenant les paragraphes)
+            const inner = findBreakY(child, targetY);
+            best = inner > best ? inner : (top > best ? top : best);
+          } else {
+            // Élément atomique (p, table, img…) → couper avant lui
+            if (top > best) best = top;
+          }
+          break; // on s'arrête au premier bloc qui dépasse
+        } else {
+          break; // bloc après la coupure, on a fini
+        }
+      }
+      return best;
+    }
+
+    const newBreaks = [];
+    let targetY = CONT_H;
+    while (targetY < h) {
+      let breakY = findBreakY(el, targetY);
+      const prev = newBreaks[newBreaks.length - 1] ?? 0;
+      if (breakY <= prev) breakY = targetY; // fallback si bloqué
+      newBreaks.push(breakY);
+      targetY = breakY + CONT_H;
+    }
+
+    const same = h === letterH && newBreaks.join() === breakPoints.join();
+    if (!same) { setLetterH(h); setBreakPoints(newBreaks); }
+  });
+
+  const newFacture = () => ({
+    id: Date.now() + Math.random(),
+    num_facture: '', date_facture: '', montant_ttc: '', montant_regle: '0', date_echeance: '',
+  });
+
+  const [form, setForm] = useState({
+    creancier_type: '', creancier_nom: '', creancier_adresse: '', creancier_cp: '', creancier_ville: '',
+    creancier_siren: '', signataire_nom: '', signataire_fonction: '', email: user?.email || '',
+    debiteur_type: '', debiteur_nom: '', debiteur_adresse: '', debiteur_cp: '', debiteur_ville: '',
+    debiteur_siren: '', debiteur_contact: '',
+    factures: [newFacture()],
+    relances: false, nb_relances: '', date_derniere_relance: '', mode_relance: '',
+    contestation: false, motif_contestation: '',
+    reclam_principal: true, reclam_interets: false, reclam_indemnite: false, reclam_principal_seul: false,
+    mode_paiement: 'virement', iban: '', bic: '', titulaire_compte: '', ordre_cheque: '', preciser_mode: '',
+    delai_paiement: '15',
+    tentative_amiable: false, date_tentative_amiable: '', mode_tentative: '',
+    contact_amiable: true, contact_amiable_modal: 'email',
+    pieces_factures: true, pieces_contrat: false, pieces_relances: false, pieces_autres: false, pieces_autres_detail: '',
+  });
+
+  const up = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const [uploadedFiles, setUploadedFiles] = useState({ factures: [], contrat: [], relances: [], autres: [] });
+  const addFiles   = (key, newFiles) => setUploadedFiles(prev => ({ ...prev, [key]: [...prev[key], ...newFiles] }));
+  const removeFile = (key, idx)      => setUploadedFiles(prev => ({ ...prev, [key]: prev[key].filter((_, i) => i !== idx) }));
+
+  const totalDu = form.factures.reduce((sum, f) => {
+    return sum + Math.max(0, (parseFloat(f.montant_ttc) || 0) - (parseFloat(f.montant_regle) || 0));
+  }, 0);
+
+  const fmtEur = (n) => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const inputStyle = {
+    width: '100%', padding: '0.85rem 1rem', border: `1.5px solid ${C.borderLight}`, borderRadius: '8px',
+    fontFamily: F, fontSize: '0.925rem', color: C.textDark, background: '#fff', outline: 'none',
+    boxSizing: 'border-box', transition: 'border-color 0.2s',
+  };
+  const canNext = () => {
+    if (step === 1) return !!(form.creancier_type && form.creancier_nom && form.creancier_adresse && form.creancier_cp && form.creancier_ville && form.email && form.email.includes('@'));
+    if (step === 2) return !!(form.debiteur_type && form.debiteur_nom && form.debiteur_adresse && form.debiteur_cp && form.debiteur_ville);
+    if (step === 3) return form.factures.length > 0 && form.factures.every(f => f.montant_ttc && f.date_echeance);
+    if (step === 5) return form.reclam_principal || form.reclam_principal_seul;
+    if (step === 6) return !!(form.delai_paiement && (form.mode_paiement !== 'virement' || (form.iban && form.titulaire_compte)));
+    return true;
+  };
+
+  const today = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const generateLetterBody = () => {
+    const facturesLines = form.factures.map(f => {
+      const solde = Math.max(0, (parseFloat(f.montant_ttc) || 0) - (parseFloat(f.montant_regle) || 0));
+      const ref  = f.num_facture ? `N° ${f.num_facture}` : 'sans numéro';
+      const date = f.date_facture ? ` du ${new Date(f.date_facture + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}` : '';
+      const ech  = f.date_echeance ? `, échue le ${new Date(f.date_echeance + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}` : '';
+      return `- Facture ${ref}${date}${ech} : ${fmtEur(solde)} €`;
+    }).join('\n');
+
+    let relancesText = '';
+    if (form.relances && form.nb_relances) {
+      const dr = form.date_derniere_relance ? ` La dernière relance a été effectuée le ${new Date(form.date_derniere_relance + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.` : '';
+      relancesText = `\n\nMalgré ${form.nb_relances} relance${Number(form.nb_relances) > 1 ? 's' : ''} effectuée${Number(form.nb_relances) > 1 ? 's' : ''}, votre facture demeure impayée à ce jour.${dr}`;
+    }
+
+    let reclamsText = `\n\nJe vous réclame le règlement de la somme totale de ${fmtEur(totalDu)} € TTC`;
+    if (!form.reclam_principal_seul) {
+      if (form.reclam_interets) reclamsText += ', augmentée des intérêts de retard calculés conformément à l\'article L. 441-10 du Code de commerce';
+      if (form.reclam_indemnite) reclamsText += ', ainsi que de l\'indemnité forfaitaire de recouvrement de 40 €';
+    }
+    reclamsText += '.';
+
+    let paymentText = '';
+    if (form.mode_paiement === 'virement' && form.iban) {
+      paymentText = `\n\nJe vous invite à procéder au règlement par virement bancaire :\n- IBAN : ${form.iban}${form.bic ? `\n- BIC : ${form.bic}` : ''}\n- Titulaire : ${form.titulaire_compte}`;
+    } else if (form.mode_paiement === 'cheque' && form.ordre_cheque) {
+      paymentText = `\n\nJe vous invite à procéder au règlement par chèque à l'ordre de : ${form.ordre_cheque}`;
+    } else if (form.mode_paiement === 'autre' && form.preciser_mode) {
+      paymentText = `\n\nLe règlement devra être effectué par : ${form.preciser_mode}`;
+    }
+
+    let amiableText = '';
+    if (form.contact_amiable) {
+      const mode = { email: 'échange d\'emails', telephone: 'entretien téléphonique', courrier: 'correspondance postale' }[form.contact_amiable_modal] || 'contact direct';
+      amiableText = `\n\nNous demeurons disponibles pour trouver une solution amiable à ce litige, notamment par ${mode}.`;
+    }
+
+    return `Nous vous mettons formellement en demeure de régler, dans un délai de ${form.delai_paiement} jours à compter de la réception du présent courrier, les factures ci-après détaillées :\n\n${facturesLines}\n\nMontant total dû : ${fmtEur(totalDu)} € TTC${relancesText}${reclamsText}${paymentText}${amiableText}\n\nConformément aux articles 1344 et suivants du Code civil, passé ce délai sans règlement intégral des sommes dues, je me verrai contraint(e) de saisir les juridictions compétentes afin de recouvrer les sommes dues, les frais de procédure et intérêts moratoires restant à votre charge.\n\nLa présente mise en demeure est adressée en lettre recommandée avec accusé de réception, conformément à l'article 1344 du Code civil.`;
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: F }}>
+      {/* Header */}
+      <div style={{ background: '#fff', borderBottom: `1px solid ${C.borderLight}`, padding: '1rem 0' }}>
+        <div style={{ maxWidth: '680px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button onClick={step === 1 ? onBack : () => setStep(s => s - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', color: C.textMuted, fontFamily: F, fontSize: '0.875rem' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+            {step === 1 ? 'Retour' : 'Précédent'}
+          </button>
+          <span style={{ fontSize: '0.8rem', color: C.textMuted, fontWeight: 600 }}>Étape {step} sur {TOTAL}</span>
+        </div>
+        <div style={{ maxWidth: '680px', margin: '0.75rem auto 0', padding: '0 1.5rem' }}>
+          <div style={{ height: '3px', background: C.borderLight, borderRadius: '99px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${(step / TOTAL) * 100}%`, background: C.accent, borderRadius: '99px', transition: 'width 0.3s ease' }} />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: isMobile ? '2rem 1.25rem' : '3rem 1.5rem' }}>
+
+        {/* ── ÉTAPE 1 : Créancier ── */}
+        {step === 1 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Facture impayée</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Vos informations</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Ces informations apparaîtront en tant que créancier sur la lettre.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <FTypeBtn active={form.creancier_type === 'particulier'}   onClick={() => up('creancier_type', 'particulier')}   label="Particulier"   sub="Une personne" />
+                <FTypeBtn active={form.creancier_type === 'professionnel'} onClick={() => up('creancier_type', 'professionnel')} label="Professionnel" sub="Une entreprise" />
+              </div>
+              {form.creancier_type && (<>
+                <FField label={form.creancier_type === 'professionnel' ? "Nom de l'entreprise" : "Votre nom complet"}>
+                  <input style={inputStyle} value={form.creancier_nom} onChange={e => up('creancier_nom', e.target.value)}
+                    placeholder={form.creancier_type === 'professionnel' ? 'ex : Dupont Consulting SARL' : 'ex : Marie Dupont'}
+                    onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                </FField>
+                {form.creancier_type === 'professionnel' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <FField label="SIREN" hint="(optionnel)">
+                      <input style={inputStyle} value={form.creancier_siren} onChange={e => up('creancier_siren', e.target.value)} placeholder="ex : 123 456 789"
+                        onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                    </FField>
+                    <FField label="Qualité du signataire" hint="(optionnel)">
+                      <input style={inputStyle} value={form.signataire_fonction} onChange={e => up('signataire_fonction', e.target.value)} placeholder="ex : Gérant, DG..."
+                        onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                    </FField>
+                  </div>
+                )}
+                <FField label="Adresse">
+                  <input style={inputStyle} value={form.creancier_adresse} onChange={e => up('creancier_adresse', e.target.value)} placeholder="ex : 12 rue de la Paix"
+                    onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                </FField>
+                <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '0.75rem' }}>
+                  <FField label="Code postal">
+                    <input style={inputStyle} value={form.creancier_cp} onChange={e => up('creancier_cp', e.target.value)} placeholder="75001"
+                      onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                  </FField>
+                  <FField label="Ville">
+                    <input style={inputStyle} value={form.creancier_ville} onChange={e => up('creancier_ville', e.target.value)} placeholder="Paris"
+                      onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                  </FField>
+                </div>
+                <div style={{ borderTop: `1px solid ${C.borderLight}`, paddingTop: '1.25rem', marginTop: '0.25rem' }}>
+                  <FField label="Votre adresse e-mail" hint="— pour recevoir votre numéro de suivi">
+                    <input style={inputStyle} type="email" value={form.email} onChange={e => up('email', e.target.value)} placeholder="vous@example.com"
+                      onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                  </FField>
+                </div>
+              </>)}
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 2 : Débiteur ── */}
+        {step === 2 && (
+          <div>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Le débiteur</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>La personne ou l'entreprise qui vous doit de l'argent.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <FTypeBtn active={form.debiteur_type === 'particulier'}   onClick={() => up('debiteur_type', 'particulier')}   label="Un particulier"   sub="Une personne" />
+                <FTypeBtn active={form.debiteur_type === 'professionnel'} onClick={() => up('debiteur_type', 'professionnel')} label="Un professionnel" sub="Une entreprise" />
+              </div>
+              {form.debiteur_type && (<>
+                <FField label={form.debiteur_type === 'professionnel' ? "Nom de l'entreprise" : "Nom complet"}>
+                  <input style={inputStyle} value={form.debiteur_nom} onChange={e => up('debiteur_nom', e.target.value)}
+                    placeholder={form.debiteur_type === 'professionnel' ? 'ex : Client SARL' : 'ex : Jean Martin'}
+                    onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                </FField>
+                {form.debiteur_type === 'professionnel' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <FField label="SIREN" hint="(optionnel)">
+                      <input style={inputStyle} value={form.debiteur_siren} onChange={e => up('debiteur_siren', e.target.value)} placeholder="ex : 987 654 321"
+                        onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                    </FField>
+                    <FField label="Contact" hint="(optionnel)">
+                      <input style={inputStyle} value={form.debiteur_contact} onChange={e => up('debiteur_contact', e.target.value)} placeholder="ex : M. Durand, DG"
+                        onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                    </FField>
+                  </div>
+                )}
+                <FField label="Adresse">
+                  <input style={inputStyle} value={form.debiteur_adresse} onChange={e => up('debiteur_adresse', e.target.value)} placeholder="ex : 5 avenue Victor Hugo"
+                    onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                </FField>
+                <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '0.75rem' }}>
+                  <FField label="Code postal">
+                    <input style={inputStyle} value={form.debiteur_cp} onChange={e => up('debiteur_cp', e.target.value)} placeholder="69001"
+                      onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                  </FField>
+                  <FField label="Ville">
+                    <input style={inputStyle} value={form.debiteur_ville} onChange={e => up('debiteur_ville', e.target.value)} placeholder="Lyon"
+                      onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                  </FField>
+                </div>
+              </>)}
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 3 : Factures ── */}
+        {step === 3 && (
+          <div>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Les factures impayées</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Renseignez chaque facture. Vous pouvez en ajouter plusieurs.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {form.factures.map((facture, idx) => {
+                const solde = Math.max(0, (parseFloat(facture.montant_ttc) || 0) - (parseFloat(facture.montant_regle) || 0));
+                const upF = (k, v) => up('factures', form.factures.map((f, i) => i === idx ? { ...f, [k]: v } : f));
+                return (
+                  <div key={facture.id} style={{ background: '#fff', border: `1.5px solid ${C.borderLight}`, borderRadius: '12px', padding: '1.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                      <span style={{ fontWeight: 700, color: C.textDark, fontSize: '0.95rem' }}>Facture {idx + 1}</span>
+                      {form.factures.length > 1 && (
+                        <button type="button" onClick={() => up('factures', form.factures.filter((_, i) => i !== idx))}
+                          style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '0.8rem', fontFamily: F, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14H6L5,6"/><path d="M10,11v6M14,11v6"/></svg>
+                          Supprimer
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        <FField label="N° de facture" hint="(optionnel)">
+                          <input style={inputStyle} value={facture.num_facture} onChange={e => upF('num_facture', e.target.value)} placeholder="ex : 2025-042"
+                            onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                        </FField>
+                        <FField label="Date de la facture" hint="(optionnel)">
+                          <input style={inputStyle} type="date" value={facture.date_facture} onChange={e => upF('date_facture', e.target.value)}
+                            onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                        </FField>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        <FField label="Montant TTC (€)">
+                          <input style={inputStyle} type="number" step="0.01" min="0" value={facture.montant_ttc} onChange={e => upF('montant_ttc', e.target.value)} placeholder="ex : 1200"
+                            onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                        </FField>
+                        <FField label="Déjà réglé (€)" hint="(0 si rien)">
+                          <input style={inputStyle} type="number" step="0.01" min="0" value={facture.montant_regle} onChange={e => upF('montant_regle', e.target.value)} placeholder="0"
+                            onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                        </FField>
+                      </div>
+                      <FField label="Date d'échéance">
+                        <input style={inputStyle} type="date" value={facture.date_echeance} onChange={e => upF('date_echeance', e.target.value)}
+                          onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                      </FField>
+                      {facture.montant_ttc && (
+                        <div style={{ background: 'rgba(201,169,110,0.07)', border: `1px solid rgba(201,169,110,0.25)`, borderRadius: '8px', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.83rem', color: C.textMid }}>Solde restant dû</span>
+                          <span style={{ fontWeight: 700, color: C.accent, fontSize: '1rem' }}>{fmtEur(solde)} €</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <button type="button" onClick={() => up('factures', [...form.factures, newFacture()])}
+              style={{ marginTop: '1.25rem', width: '100%', padding: '0.875rem', borderRadius: '10px', border: `2px dashed ${C.borderLight}`, background: 'none', fontFamily: F, fontWeight: 600, fontSize: '0.9rem', color: C.textMuted, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'border-color 0.2s, color 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = C.accent; e.currentTarget.style.color = C.accent; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = C.borderLight; e.currentTarget.style.color = C.textMuted; }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              Ajouter une facture
+            </button>
+            {form.factures.some(f => f.montant_ttc) && (
+              <div style={{ marginTop: '1.5rem', background: C.primary, color: '#fff', borderRadius: '12px', padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Total dû</span>
+                <span style={{ fontWeight: 800, fontSize: '1.35rem', color: C.accent }}>{fmtEur(totalDu)} €</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── ÉTAPE 4 : Historique ── */}
+        {step === 4 && (
+          <div>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Historique du litige</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Ces informations permettront de contextualiser votre lettre.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {/* Relances */}
+              <div style={{ background: '#fff', border: `1.5px solid ${C.borderLight}`, borderRadius: '12px', padding: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                  <FCheckbox checked={form.relances} onChange={() => up('relances', !form.relances)} />
+                  <div>
+                    <div style={{ fontWeight: 700, color: C.textDark, fontSize: '0.95rem', marginBottom: '0.2rem' }}>Avez-vous déjà relancé le débiteur ?</div>
+                    <div style={{ fontSize: '0.82rem', color: '#888' }}>Email, téléphone, courrier simple...</div>
+                  </div>
+                </div>
+                {form.relances && (
+                  <div style={{ marginTop: '1.25rem', paddingLeft: '2.25rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <FField label="Nombre de relances">
+                        <input style={inputStyle} type="number" min="1" value={form.nb_relances} onChange={e => up('nb_relances', e.target.value)} placeholder="ex : 3"
+                          onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                      </FField>
+                      <FField label="Date de la dernière relance">
+                        <input style={inputStyle} type="date" value={form.date_derniere_relance} onChange={e => up('date_derniere_relance', e.target.value)}
+                          onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                      </FField>
+                    </div>
+                    <FField label="Mode de relance">
+                      <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                        {['email', 'téléphone', 'courrier simple', 'plusieurs modes'].map(m => (
+                          <button key={m} type="button" onClick={() => up('mode_relance', m)} style={{ padding: '0.5rem 0.875rem', borderRadius: '20px', border: `1.5px solid ${form.mode_relance === m ? C.accent : C.borderLight}`, background: form.mode_relance === m ? 'rgba(201,169,110,0.1)' : '#fff', fontFamily: F, fontWeight: form.mode_relance === m ? 700 : 400, fontSize: '0.82rem', color: form.mode_relance === m ? C.accent : C.textMid, cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                    </FField>
+                  </div>
+                )}
+              </div>
+              {/* Contestation */}
+              <div style={{ background: '#fff', border: `1.5px solid ${C.borderLight}`, borderRadius: '12px', padding: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                  <FCheckbox checked={form.contestation} onChange={() => up('contestation', !form.contestation)} />
+                  <div>
+                    <div style={{ fontWeight: 700, color: C.textDark, fontSize: '0.95rem', marginBottom: '0.2rem' }}>Le débiteur conteste-t-il la dette ?</div>
+                    <div style={{ fontSize: '0.82rem', color: '#888' }}>Il affirme avoir payé, nie la prestation, invoque un vice...</div>
+                  </div>
+                </div>
+                {form.contestation && (
+                  <div style={{ marginTop: '1.25rem', paddingLeft: '2.25rem' }}>
+                    <FField label="Motif de la contestation">
+                      <textarea style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }} value={form.motif_contestation} onChange={e => up('motif_contestation', e.target.value)}
+                        placeholder="ex : Il affirme avoir réglé la facture le 15 mars par virement..."
+                        onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                    </FField>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 5 : Réclamations ── */}
+        {step === 5 && (
+          <div>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Que réclamez-vous ?</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Sélectionnez les éléments à inclure dans votre réclamation.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              {[
+                { key: 'reclam_principal',      label: 'Paiement du principal',           desc: `Montant total dû : ${fmtEur(totalDu)} €`,                        disabled: false,                         exclusive: false },
+                { key: 'reclam_interets',        label: 'Intérêts de retard légaux',        desc: 'Art. L.441-10 C. com — taux BCE + 10 points',                    disabled: form.reclam_principal_seul,    exclusive: false },
+                { key: 'reclam_indemnite',       label: 'Indemnité forfaitaire (40 €)',     desc: 'Art. L.441-10 C. com (créances commerciales)',                    disabled: form.reclam_principal_seul,    exclusive: false },
+                { key: 'reclam_principal_seul',  label: 'Principal uniquement',             desc: 'Sans intérêts ni indemnité forfaitaire',                          disabled: false,                         exclusive: true  },
+              ].map(({ key, label, desc, disabled, exclusive }) => {
+                const checked = form[key];
+                return (
+                  <button key={key} type="button" disabled={disabled} onClick={() => {
+                    if (disabled) return;
+                    if (exclusive && !checked) {
+                      setForm(f => ({ ...f, reclam_interets: false, reclam_indemnite: false, [key]: true }));
+                    } else {
+                      up(key, !checked);
+                    }
+                  }} style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '1.25rem', borderRadius: '12px', border: `2px solid ${checked && !disabled ? C.accent : disabled ? '#E8E8E4' : C.borderLight}`, background: checked && !disabled ? 'rgba(201,169,110,0.07)' : disabled ? '#F8F8F6' : '#fff', cursor: disabled ? 'not-allowed' : 'pointer', textAlign: 'left', transition: 'all 0.15s', width: '100%', fontFamily: F }}>
+                    <div style={{ flexShrink: 0, width: '22px', height: '22px', borderRadius: '6px', border: `2px solid ${checked && !disabled ? C.accent : disabled ? '#D0D0CC' : C.borderLight}`, background: checked && !disabled ? C.accent : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1px', transition: 'all 0.15s' }}>
+                      {checked && !disabled && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, color: disabled ? '#bbb' : C.textDark, fontSize: '0.95rem', marginBottom: '0.2rem' }}>{label}</div>
+                      <div style={{ fontSize: '0.82rem', color: disabled ? '#ccc' : '#888' }}>{desc}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 6 : Modalités de paiement ── */}
+        {step === 6 && (
+          <div>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Modalités de paiement</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Comment le débiteur doit-il vous régler ?</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: C.textDark, marginBottom: '0.4rem' }}>Mode de règlement souhaité</label>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: '0.75rem' }}>
+                  {[{ v: 'virement', label: 'Virement' }, { v: 'cheque', label: 'Chèque' }, { v: 'especes', label: 'Espèces' }, { v: 'autre', label: 'Autre' }].map(({ v, label }) => (
+                    <button key={v} type="button" onClick={() => up('mode_paiement', v)} style={{ padding: '0.875rem 0.5rem', borderRadius: '10px', cursor: 'pointer', border: `2px solid ${form.mode_paiement === v ? C.accent : C.borderLight}`, background: form.mode_paiement === v ? 'rgba(201,169,110,0.07)' : '#fff', fontFamily: F, fontWeight: form.mode_paiement === v ? 700 : 400, fontSize: '0.88rem', color: form.mode_paiement === v ? C.accent : C.textDark, transition: 'all 0.15s' }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {form.mode_paiement === 'virement' && (
+                <div style={{ background: '#fff', border: `1.5px solid ${C.borderLight}`, borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                  <FField label="Titulaire du compte">
+                    <input style={inputStyle} value={form.titulaire_compte} onChange={e => up('titulaire_compte', e.target.value)} placeholder="ex : Marie Dupont"
+                      onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                  </FField>
+                  <FField label="IBAN">
+                    <input style={inputStyle} value={form.iban} onChange={e => up('iban', e.target.value.toUpperCase())} placeholder="ex : FR76 1234 5678 9012 3456 7890 123"
+                      onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                  </FField>
+                  <FField label="BIC" hint="(optionnel)">
+                    <input style={inputStyle} value={form.bic} onChange={e => up('bic', e.target.value.toUpperCase())} placeholder="ex : BNPAFRPP"
+                      onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                  </FField>
+                </div>
+              )}
+              {form.mode_paiement === 'cheque' && (
+                <div style={{ background: '#fff', border: `1.5px solid ${C.borderLight}`, borderRadius: '12px', padding: '1.5rem' }}>
+                  <FField label="Chèque à l'ordre de">
+                    <input style={inputStyle} value={form.ordre_cheque} onChange={e => up('ordre_cheque', e.target.value)} placeholder="ex : Marie Dupont"
+                      onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                  </FField>
+                </div>
+              )}
+              {form.mode_paiement === 'autre' && (
+                <div style={{ background: '#fff', border: `1.5px solid ${C.borderLight}`, borderRadius: '12px', padding: '1.5rem' }}>
+                  <FField label="Précisez le mode de règlement">
+                    <input style={inputStyle} value={form.preciser_mode} onChange={e => up('preciser_mode', e.target.value)} placeholder="ex : Mandat postal, PayPal..."
+                      onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                  </FField>
+                </div>
+              )}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: C.textDark, marginBottom: '0.4rem' }}>Délai accordé pour le règlement</label>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  {['8', '15', '30'].map(j => (
+                    <button key={j} type="button" onClick={() => up('delai_paiement', j)} style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', cursor: 'pointer', border: `2px solid ${form.delai_paiement === j ? C.accent : C.borderLight}`, background: form.delai_paiement === j ? 'rgba(201,169,110,0.07)' : '#fff', fontFamily: F, fontWeight: 700, color: form.delai_paiement === j ? C.accent : C.textDark, fontSize: '0.9rem', transition: 'all 0.15s' }}>
+                      {j} jours
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 7 : Règlement amiable ── */}
+        {step === 7 && (
+          <div>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Règlement amiable</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Avez-vous tenté de régler ce litige à l'amiable ?</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div style={{ background: '#fff', border: `1.5px solid ${C.borderLight}`, borderRadius: '12px', padding: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                  <FCheckbox checked={form.tentative_amiable} onChange={() => up('tentative_amiable', !form.tentative_amiable)} />
+                  <div>
+                    <div style={{ fontWeight: 700, color: C.textDark, fontSize: '0.95rem', marginBottom: '0.2rem' }}>J'ai tenté un règlement amiable</div>
+                    <div style={{ fontSize: '0.82rem', color: '#888' }}>Discussion directe, médiation, proposition d'accord...</div>
+                  </div>
+                </div>
+                {form.tentative_amiable && (
+                  <div style={{ marginTop: '1.25rem', paddingLeft: '2.25rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                    <FField label="Date de la tentative">
+                      <input style={inputStyle} type="date" value={form.date_tentative_amiable} onChange={e => up('date_tentative_amiable', e.target.value)}
+                        onFocus={e => e.target.style.borderColor = C.accent} onBlur={e => e.target.style.borderColor = C.borderLight} />
+                    </FField>
+                    <FField label="Mode de tentative">
+                      <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                        {['Échange direct', 'Email', 'Médiation', "Proposition d'accord"].map(m => (
+                          <button key={m} type="button" onClick={() => up('mode_tentative', m)} style={{ padding: '0.5rem 0.875rem', borderRadius: '20px', border: `1.5px solid ${form.mode_tentative === m ? C.accent : C.borderLight}`, background: form.mode_tentative === m ? 'rgba(201,169,110,0.1)' : '#fff', fontFamily: F, fontWeight: form.mode_tentative === m ? 700 : 400, fontSize: '0.82rem', color: form.mode_tentative === m ? C.accent : C.textMid, cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                    </FField>
+                  </div>
+                )}
+              </div>
+              <div style={{ background: '#fff', border: `1.5px solid ${C.borderLight}`, borderRadius: '12px', padding: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                  <FCheckbox checked={form.contact_amiable} onChange={() => up('contact_amiable', !form.contact_amiable)} />
+                  <div>
+                    <div style={{ fontWeight: 700, color: C.textDark, fontSize: '0.95rem', marginBottom: '0.2rem' }}>Proposer un contact amiable</div>
+                    <div style={{ fontSize: '0.82rem', color: '#888' }}>Mentionner dans la lettre que vous restez disponible avant d'engager une action judiciaire</div>
+                  </div>
+                </div>
+                {form.contact_amiable && (
+                  <div style={{ marginTop: '1.25rem', paddingLeft: '2.25rem' }}>
+                    <FField label="Mode de contact préféré">
+                      <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                        {['email', 'telephone', 'courrier'].map(m => (
+                          <button key={m} type="button" onClick={() => up('contact_amiable_modal', m)} style={{ padding: '0.5rem 0.875rem', borderRadius: '20px', border: `1.5px solid ${form.contact_amiable_modal === m ? C.accent : C.borderLight}`, background: form.contact_amiable_modal === m ? 'rgba(201,169,110,0.1)' : '#fff', fontFamily: F, fontWeight: form.contact_amiable_modal === m ? 700 : 400, fontSize: '0.82rem', color: form.contact_amiable_modal === m ? C.accent : C.textMid, cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                            {{ email: 'E-mail', telephone: 'Téléphone', courrier: 'Courrier' }[m]}
+                          </button>
+                        ))}
+                      </div>
+                    </FField>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 8 : Pièces jointes ── */}
+        {step === 8 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Facture impayée</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Pièces jointes</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Joignez les documents qui accompagneront votre mise en demeure. Ils seront transmis avec votre lettre.</p>
+            <FUploadZone
+              label="Copie(s) de la/des facture(s)" required
+              files={uploadedFiles.factures}
+              onAdd={files => addFiles('factures', files)}
+              onRemove={idx => removeFile('factures', idx)}
+            />
+            <FUploadZone
+              label="Contrat ou bon de commande" hint="(optionnel)"
+              files={uploadedFiles.contrat}
+              onAdd={files => addFiles('contrat', files)}
+              onRemove={idx => removeFile('contrat', idx)}
+            />
+            <FUploadZone
+              label="Preuve(s) de relance(s)" hint="(optionnel)"
+              files={uploadedFiles.relances}
+              onAdd={files => addFiles('relances', files)}
+              onRemove={idx => removeFile('relances', idx)}
+            />
+            <FUploadZone
+              label="Autres documents" hint="(optionnel)"
+              files={uploadedFiles.autres}
+              onAdd={files => addFiles('autres', files)}
+              onRemove={idx => removeFile('autres', idx)}
+            />
+            {uploadedFiles.factures.length === 0 && (
+              <div style={{ background: 'rgba(201,169,110,0.08)', border: `1px solid rgba(201,169,110,0.3)`, borderRadius: '8px', padding: '0.75rem 1rem', fontSize: '0.82rem', color: C.textMid, display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '1px' }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Nous recommandons d'inclure au moins une copie de la facture impayée pour renforcer la valeur juridique de votre lettre.</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── ÉTAPE 9 : Aperçu & Envoi ── */}
+        {step === 9 && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: C.textDark, margin: 0 }}>Votre lettre est prête</h1>
+              <button type="button" onClick={() => setShowFullLetter(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', borderRadius: '8px', border: `1.5px solid ${showFullLetter ? C.accent : C.borderLight}`, background: showFullLetter ? 'rgba(201,169,110,0.1)' : '#fff', fontFamily: F, fontWeight: 600, fontSize: '0.8rem', color: showFullLetter ? C.accent : C.textMuted, cursor: 'pointer', transition: 'all 0.2s' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                {showFullLetter ? 'Masquer le contenu' : 'Visualiser la lettre'}
+              </button>
+            </div>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Relisez votre mise en demeure avant de l'envoyer.</p>
+
+            {/* A4 preview multi-pages */}
+            {(() => {
+              const A4W   = 794;
+              const A4H   = 1123;
+              const GUTTER = 80; // px de marge verticale dans la lettre
+              const scale  = isMobile ? 0.42 : 0.68;
+
+              const fmtDate = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR') : '—';
+
+              /* ── Contenu lettre ── */
+              const bodyJSX = (
+                <>
+                  <div style={{ marginBottom: '1.5rem' }}>Madame, Monsieur,</div>
+                  <p style={{ marginBottom: '1.25rem' }}>
+                    Nous vous mettons formellement en demeure de régler, dans un délai de <strong>{form.delai_paiement} jours</strong> à compter de la réception du présent courrier, les factures ci-après détaillées :
+                  </p>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', marginBottom: '1.25rem' }}>
+                    <thead>
+                      <tr style={{ background: '#f2f2f2' }}>
+                        {['N° Facture','Date','Échéance','Montant TTC','Solde dû'].map(h => (
+                          <th key={h} style={{ textAlign: h === 'Montant TTC' || h === 'Solde dû' ? 'right' : 'left', padding: '5px 8px', border: '1px solid #d8d8d8', fontWeight: 700 }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {form.factures.map(f => {
+                        const solde = Math.max(0, (parseFloat(f.montant_ttc) || 0) - (parseFloat(f.montant_regle) || 0));
+                        return (
+                          <tr key={f.id}>
+                            <td style={{ padding: '5px 8px', border: '1px solid #d8d8d8' }}>{f.num_facture || '—'}</td>
+                            <td style={{ padding: '5px 8px', border: '1px solid #d8d8d8' }}>{fmtDate(f.date_facture)}</td>
+                            <td style={{ padding: '5px 8px', border: '1px solid #d8d8d8' }}>{fmtDate(f.date_echeance)}</td>
+                            <td style={{ padding: '5px 8px', border: '1px solid #d8d8d8', textAlign: 'right' }}>{f.montant_ttc ? fmtEur(parseFloat(f.montant_ttc)) + ' €' : '—'}</td>
+                            <td style={{ padding: '5px 8px', border: '1px solid #d8d8d8', textAlign: 'right', fontWeight: 700 }}>{fmtEur(solde)} €</td>
+                          </tr>
+                        );
+                      })}
+                      <tr style={{ background: '#f9f5ee' }}>
+                        <td colSpan={4} style={{ padding: '5px 8px', border: '1px solid #d8d8d8', fontWeight: 700, textAlign: 'right' }}>Total dû</td>
+                        <td style={{ padding: '5px 8px', border: '1px solid #d8d8d8', fontWeight: 700, textAlign: 'right' }}>{fmtEur(totalDu)} €</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  {form.relances && form.nb_relances && (
+                    <p style={{ marginBottom: '1.25rem' }}>
+                      Malgré {form.nb_relances} relance{Number(form.nb_relances) > 1 ? 's' : ''} effectuée{Number(form.nb_relances) > 1 ? 's' : ''}, votre facture demeure impayée à ce jour.{form.date_derniere_relance ? ` La dernière relance a été effectuée le ${new Date(form.date_derniere_relance + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.` : ''}
+                    </p>
+                  )}
+                  <p style={{ marginBottom: '1.25rem' }}>
+                    Je vous réclame le règlement de la somme totale de <strong>{fmtEur(totalDu)} € TTC</strong>{!form.reclam_principal_seul && form.reclam_interets ? ', augmentée des intérêts de retard calculés conformément à l\'article L. 441-10 du Code de commerce' : ''}{!form.reclam_principal_seul && form.reclam_indemnite ? ', ainsi que de l\'indemnité forfaitaire de recouvrement de 40 €' : ''}.
+                  </p>
+                  {form.mode_paiement === 'virement' && form.iban && (<>
+                    <p style={{ marginBottom: '0.6rem' }}>Je vous invite à procéder au règlement par virement bancaire aux coordonnées suivantes :</p>
+                    <table style={{ borderCollapse: 'collapse', fontSize: '11.5px', marginBottom: '1.25rem' }}>
+                      <tbody>
+                        <tr>
+                          <td style={{ padding: '5px 10px', border: '1px solid #d8d8d8', fontWeight: 700, background: '#f2f2f2', whiteSpace: 'nowrap' }}>Titulaire</td>
+                          <td style={{ padding: '5px 10px', border: '1px solid #d8d8d8' }}>{form.titulaire_compte || '—'}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ padding: '5px 10px', border: '1px solid #d8d8d8', fontWeight: 700, background: '#f2f2f2' }}>IBAN</td>
+                          <td style={{ padding: '5px 10px', border: '1px solid #d8d8d8', fontFamily: 'monospace', letterSpacing: '0.04em' }}>{form.iban}</td>
+                        </tr>
+                        {form.bic && (
+                          <tr>
+                            <td style={{ padding: '5px 10px', border: '1px solid #d8d8d8', fontWeight: 700, background: '#f2f2f2' }}>BIC</td>
+                            <td style={{ padding: '5px 10px', border: '1px solid #d8d8d8' }}>{form.bic}</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </>)}
+                  {form.mode_paiement === 'cheque' && form.ordre_cheque && (
+                    <p style={{ marginBottom: '1.25rem' }}>Je vous invite à procéder au règlement par chèque à l'ordre de : <strong>{form.ordre_cheque}</strong>.</p>
+                  )}
+                  {form.mode_paiement === 'autre' && form.preciser_mode && (
+                    <p style={{ marginBottom: '1.25rem' }}>Le règlement devra être effectué par : {form.preciser_mode}.</p>
+                  )}
+                  {form.contact_amiable && (
+                    <p style={{ marginBottom: '1.25rem' }}>
+                      Nous demeurons disponibles pour trouver une solution amiable à ce litige, notamment par {{ email: "échange d'emails", telephone: 'entretien téléphonique', courrier: 'correspondance postale' }[form.contact_amiable_modal] || 'contact direct'}.
+                    </p>
+                  )}
+                  <p style={{ marginBottom: '1.25rem' }}>Conformément aux articles 1344 et suivants du Code civil, passé ce délai sans règlement intégral des sommes dues, je me verrai contraint(e) de saisir les juridictions compétentes afin de recouvrer les sommes dues, les frais de procédure et intérêts moratoires restant à votre charge.</p>
+                  <p style={{ marginBottom: '0' }}>La présente mise en demeure est adressée en lettre recommandée avec accusé de réception, conformément à l'article 1344 du Code civil.</p>
+                </>
+              );
+
+
+              const letterJSX = (
+                <>
+                  {/* En-tête expéditeur */}
+                  <div style={{ marginBottom: '2.5rem' }}>
+                    <div style={{ fontWeight: 700, fontSize: '13.5px' }}>{form.creancier_nom}</div>
+                    <div>{form.creancier_adresse}</div>
+                    <div>{form.creancier_cp} {form.creancier_ville}</div>
+                    {form.creancier_siren && <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>SIREN : {form.creancier_siren}</div>}
+                  </div>
+                  {/* Destinataire droite */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '2.5rem' }}>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontWeight: 700, fontSize: '13.5px' }}>{form.debiteur_nom}</div>
+                      <div>{form.debiteur_adresse}</div>
+                      <div>{form.debiteur_cp} {form.debiteur_ville}</div>
+                      {form.debiteur_siren && <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>SIREN : {form.debiteur_siren}</div>}
+                    </div>
+                  </div>
+                  {/* Date */}
+                  <div style={{ textAlign: 'right', color: '#555', marginBottom: '2rem' }}>{form.creancier_ville || 'Ville'}, le {today}</div>
+                  {/* Objet */}
+                  <div style={{ marginBottom: '1.75rem', paddingBottom: '1rem', borderBottom: '1px solid #eee' }}>
+                    <div><strong>Objet :</strong> Mise en demeure de paiement — facture{form.factures.length > 1 ? 's' : ''} impayée{form.factures.length > 1 ? 's' : ''}</div>
+                  </div>
+                  {/* Corps floutés */}
+                  <div style={{ filter: showFullLetter ? 'none' : 'blur(4px)', userSelect: showFullLetter ? 'text' : 'none', WebkitUserSelect: showFullLetter ? 'text' : 'none', transition: 'filter 0.3s' }}>
+                    {bodyJSX}
+                    <div style={{ marginTop: '2rem' }}>
+                      Veuillez agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+                    </div>
+                  </div>
+                  {/* Signature + Nom — toujours visible (hors blur) */}
+                  <div style={{ marginTop: '1.5rem', display: 'inline-block' }}>
+                    {signature
+                      ? <img src={signature} alt="signature" style={{ display: 'block', width: '170px', height: '58px', objectFit: 'contain', objectPosition: 'left bottom', marginBottom: '2px' }} />
+                      : <div style={{ height: '44px' }} />
+                    }
+                    <div style={{ fontWeight: 700, fontSize: '13.5px' }}>{form.creancier_nom}</div>
+                    {form.signataire_fonction && <div style={{ fontSize: '11px', color: '#666' }}>{form.signataire_fonction}</div>}
+                  </div>
+                </>
+              );
+
+              /* Style du contenu brut */
+              const contentDivStyle = {
+                width: A4W, padding: '0 80px', boxSizing: 'border-box',
+                fontFamily: "'DM Sans', sans-serif", fontSize: '13px', lineHeight: 1.7,
+                color: '#111', userSelect: 'none', WebkitUserSelect: 'none',
+              };
+
+              const CONTENT_H = A4H - GUTTER * 2; // 963px utiles par page
+
+              // Calcul des tranches à partir des breakPoints détectés dans le DOM
+              const ends   = [...breakPoints, letterH > 0 ? letterH : CONTENT_H];
+              const slices = ends.map((end, i) => ({ start: i === 0 ? 0 : ends[i - 1], end }))
+                               .filter(s => s.end > s.start);
+              const numPages = slices.length || 1;
+
+              return (
+                <>
+                  {/* Div de mesure hors-écran */}
+                  <div ref={letterInnerRef} style={{ ...contentDivStyle, position: 'fixed', top: '-9999px', left: '-9999px', visibility: 'hidden', pointerEvents: 'none' }}>
+                    {letterJSX}
+                  </div>
+
+                  {/* Feuillets A4 séparés — coupure sur vraies limites de blocs */}
+                  <div style={{ background: '#d8d8d4', padding: '1.25rem 1rem', marginBottom: '2rem', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                    {(slices.length ? slices : [{ start: 0, end: CONTENT_H }]).map(({ start, end }, pageIdx) => {
+                      const sliceH = end - start;
+                      return (
+                        <div key={pageIdx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                          {numPages > 1 && (
+                            <div style={{ fontSize: '0.68rem', color: '#888', marginBottom: '0.35rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                              Page {pageIdx + 1} / {numPages}
+                            </div>
+                          )}
+                          {/* Feuillet A4 */}
+                          <div style={{ width: A4W * scale, height: A4H * scale, background: '#fff', boxShadow: '0 4px 32px rgba(0,0,0,0.22)', flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
+                            {/* Marge haute fixe */}
+                            <div style={{ height: GUTTER * scale }} />
+                            {/* Fenêtre de contenu = sliceH exact, pas de coupure */}
+                            <div style={{ height: sliceH * scale, overflow: 'hidden', position: 'relative' }}>
+                              <div style={{ ...contentDivStyle, position: 'absolute', top: -(start * scale), left: 0, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+                                {letterJSX}
+                              </div>
+                            </div>
+                            {/* Marge basse : le blanc restant remplit le A4 naturellement */}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              );
+            })()}
+
+            {/* Signature pad */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <p style={{ fontWeight: 700, color: C.textDark, fontSize: '0.875rem', marginBottom: '0.75rem' }}>Votre signature <span style={{ fontWeight: 400, color: '#999', fontSize: '0.78rem' }}>(optionnel)</span></p>
+              <SignaturePad onChange={setSignature} />
+              {signature && <p style={{ fontSize: '0.75rem', color: '#66a', marginTop: '0.4rem' }}>✓ Signature enregistrée — elle apparaîtra dans votre lettre</p>}
+            </div>
+
+            {/* Pièces jointes — récap des uploads */}
+            {(uploadedFiles.factures.length + uploadedFiles.contrat.length + uploadedFiles.relances.length + uploadedFiles.autres.length) > 0 && (
+              <div style={{ background: '#fff', border: `1.5px solid ${C.borderLight}`, borderRadius: '12px', padding: '1.5rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <p style={{ fontWeight: 700, color: C.textDark, fontSize: '0.95rem', margin: 0 }}>Pièces jointes</p>
+                  <button type="button" onClick={() => setStep(8)} style={{ fontSize: '0.78rem', color: C.accent, background: 'none', border: 'none', cursor: 'pointer', fontFamily: F, fontWeight: 600, textDecoration: 'underline' }}>Modifier</button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {[
+                    { key: 'factures', label: 'Facture(s)' },
+                    { key: 'contrat',  label: 'Contrat / bon de commande' },
+                    { key: 'relances', label: 'Preuve(s) de relance' },
+                    { key: 'autres',   label: 'Autres documents' },
+                  ].filter(({ key }) => uploadedFiles[key].length > 0).map(({ key, label }) => (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.85rem', color: C.textMid }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                      <span style={{ color: C.textDark, fontWeight: 600 }}>{label}</span>
+                      <span style={{ color: '#999' }}>— {uploadedFiles[key].length} fichier{uploadedFiles[key].length > 1 ? 's' : ''}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Récap */}
+            <div style={{ background: 'rgba(201,169,110,0.07)', border: `1px solid rgba(201,169,110,0.25)`, borderRadius: '10px', padding: '1rem 1.25rem', marginBottom: '2rem', fontSize: '0.85rem', color: C.textMid }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 2rem' }}>
+                <span>📬 Envoi par <strong style={{ color: C.textDark }}>lettre recommandée AR</strong></span>
+                <span>⏱ Délai accordé : <strong style={{ color: C.textDark }}>{form.delai_paiement} jours</strong></span>
+                <span>💶 Montant réclamé : <strong style={{ color: C.textDark }}>{fmtEur(totalDu)} €</strong></span>
+              </div>
+            </div>
+
+            {paymentError && (
+              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '0.75rem 1rem', marginBottom: '1rem', fontSize: '0.85rem', color: '#DC2626' }}>
+                {paymentError}
+              </div>
+            )}
+            <button disabled={paymentLoading} onClick={async () => {
+              setPaymentLoading(true); setPaymentError('');
+              try {
+                const letterData = {
+                  expediteurType: form.creancier_type, expediteurNom: form.creancier_nom,
+                  expediteurAdresse: form.creancier_adresse, expediteurCP: form.creancier_cp, expediteurVille: form.creancier_ville,
+                  destinataireType: form.debiteur_type, destinataireNom: form.debiteur_nom,
+                  destinataireAdresse: form.debiteur_adresse, destinataireCP: form.debiteur_cp, destinataireVille: form.debiteur_ville,
+                  litige: 'facture', montant: totalDu.toFixed(2), delai: form.delai_paiement,
+                  description: `${form.factures.length} facture(s) impayée(s)`,
+                };
+                const res = await fetch('/api/create-checkout-session', {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ letterData, email: form.email, userId: user?.id || null }),
+                });
+                const json = await res.json();
+                if (json.error) throw new Error(json.error);
+                if (!json.url) throw new Error(`Réponse inattendue (status ${res.status})`);
+                window.location.href = json.url;
+              } catch (err) {
+                setPaymentError(err.message || 'Une erreur est survenue. Réessayez.');
+                setPaymentLoading(false);
+              }
+            }} style={{ width: '100%', background: paymentLoading ? '#999' : C.accent, border: 'none', padding: '1.1rem 2rem', borderRadius: '10px', fontFamily: F, fontWeight: 700, fontSize: '1.05rem', color: C.textDark, cursor: paymentLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', boxShadow: '0 4px 24px rgba(201,169,110,0.3)', transition: 'all 0.2s' }}>
+              {paymentLoading ? 'Redirection vers le paiement…' : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>Envoyer ma lettre</>}
+            </button>
+            <p style={{ textAlign: 'center', fontSize: '0.78rem', color: C.textMuted, marginTop: '0.75rem' }}>
+              Paiement sécurisé · Envoi en LRAR via La Poste · Accusé de réception inclus
+            </p>
+          </div>
+        )}
+
+        {/* Navigation */}
+        {step < 9 && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2.5rem' }}>
+            <button onClick={() => { if (canNext()) setStep(s => s + 1); }} style={{
+              background: canNext() ? C.accent : '#E0E0DC', border: `2px solid ${canNext() ? C.accent : '#E0E0DC'}`,
+              padding: '0.875rem 2rem', borderRadius: '8px', fontFamily: F, fontWeight: 700,
+              fontSize: '0.9rem', color: canNext() ? C.textDark : '#999',
+              cursor: canNext() ? 'pointer' : 'not-allowed', transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { if (canNext()) { e.currentTarget.style.background = C.accentHover; e.currentTarget.style.borderColor = C.accentHover; } }}
+            onMouseLeave={e => { if (canNext()) { e.currentTarget.style.background = C.accent; e.currentTarget.style.borderColor = C.accent; } }}>
+              {step === 8 ? 'Aperçu de ma lettre →' : 'Continuer →'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ── Formulaire Loyer Impayé (8 étapes) ─────────────────────── */
+const LoyerImpayeForm = ({ onBack, user }) => {
+  const isMobile = useIsMobile();
+  const [step, setStep] = useState(1);
+  const TOTAL = 8;
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError]     = useState('');
+  const [showFullLetter, setShowFullLetter] = useState(false);
+  const [signature, setSignature]           = useState(null);
+  const [letterH, setLetterH]               = useState(0);
+  const [breakPoints, setBreakPoints]       = useState([]);
+  const letterInnerRef = useRef(null);
+
+  useEffect(() => {
+    const el = letterInnerRef.current;
+    if (!el) return;
+    const h = el.offsetHeight;
+    if (h === 0) return;
+    const CONT_H = 1123 - 80 * 2;
+    const containerTop = el.getBoundingClientRect().top;
+    function findBreakY(parent, targetY) {
+      let best = 0;
+      for (const child of parent.children) {
+        const r = child.getBoundingClientRect();
+        const top = r.top - containerTop, bottom = r.bottom - containerTop;
+        if (bottom <= targetY) { best = bottom; }
+        else if (top < targetY) {
+          const tag = child.tagName.toLowerCase();
+          if (tag === 'div' && child.children.length > 0) {
+            const inner = findBreakY(child, targetY);
+            best = inner > best ? inner : (top > best ? top : best);
+          } else { if (top > best) best = top; }
+          break;
+        } else break;
+      }
+      return best;
+    }
+    const newBreaks = [];
+    let targetY = CONT_H;
+    while (targetY < h) {
+      let breakY = findBreakY(el, targetY);
+      const prev = newBreaks[newBreaks.length - 1] ?? 0;
+      if (breakY <= prev) breakY = targetY;
+      newBreaks.push(breakY);
+      targetY = breakY + CONT_H;
+    }
+    const same = h === letterH && newBreaks.join() === breakPoints.join();
+    if (!same) { setLetterH(h); setBreakPoints(newBreaks); }
+  });
+
+  const newMois = () => ({ id: Date.now() + Math.random(), periode: '', loyer: '', charges: '0', paye: '0' });
+
+  const [form, setForm] = useState({
+    bailleur_type: '', bailleur_nom: '', bailleur_adresse: '', bailleur_cp: '', bailleur_ville: '',
+    bailleur_email: user?.email || '', bailleur_tel: '', bailleur_siren: '',
+    signataire_nom: '', signataire_fonction: '',
+    locataire_type: '', locataire_nom: '', locataire_adresse: '', locataire_cp: '', locataire_ville: '',
+    bien_adresse: '', bien_cp: '', bien_ville: '', bail_date: '', bien_type: 'logement',
+    loyers: [newMois()],
+    relances: false, nb_relances: '', date_derniere_relance: '',
+    contestation: false,
+    echeancier: false, contact_echeancier: '',
+    mode_paiement: 'virement', iban: '', bic: '', titulaire_compte: '', ordre_cheque: '', preciser_mode: '',
+    delai_paiement: '8',
+  });
+  const up = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const [uploadedFiles, setUploadedFiles] = useState({ bail: [], decompte: [], relances: [], autres: [] });
+  const addFiles   = (key, files) => setUploadedFiles(p => ({ ...p, [key]: [...p[key], ...files] }));
+  const removeFile = (key, idx)   => setUploadedFiles(p => ({ ...p, [key]: p[key].filter((_, i) => i !== idx) }));
+
+  const totalDu = form.loyers.reduce((sum, l) =>
+    sum + Math.max(0, (parseFloat(l.loyer)||0) + (parseFloat(l.charges)||0) - (parseFloat(l.paye)||0)), 0);
+  const fmtEur = n => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const inputStyle = {
+    width: '100%', padding: '0.85rem 1rem', border: `1.5px solid ${C.borderLight}`, borderRadius: '8px',
+    fontFamily: F, fontSize: '0.925rem', color: C.textDark, background: '#fff', outline: 'none',
+    boxSizing: 'border-box', transition: 'border-color 0.2s',
+  };
+
+  const canNext = () => {
+    if (step === 1) return !!(form.bailleur_type && form.bailleur_nom && form.bailleur_adresse && form.bailleur_cp && form.bailleur_ville && form.bailleur_email && form.bailleur_email.includes('@'));
+    if (step === 2) return !!(form.locataire_type && form.locataire_nom && form.locataire_adresse && form.locataire_cp && form.locataire_ville);
+    if (step === 3) return !!(form.bien_adresse && form.bien_cp && form.bien_ville && form.bail_date);
+    if (step === 4) return form.loyers.length > 0 && form.loyers.every(l => l.periode && l.loyer);
+    if (step === 6) return !!(form.delai_paiement && (form.mode_paiement !== 'virement' || (form.iban && form.titulaire_compte)));
+    return true;
+  };
+
+  const today = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: F }}>
+      {/* Header */}
+      <div style={{ background: '#fff', borderBottom: `1px solid ${C.borderLight}`, padding: '1rem 0' }}>
+        <div style={{ maxWidth: '680px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button onClick={step === 1 ? onBack : () => setStep(s => s - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', color: C.textMuted, fontFamily: F, fontSize: '0.875rem' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+            {step === 1 ? 'Retour' : 'Précédent'}
+          </button>
+          <span style={{ fontSize: '0.8rem', color: C.textMuted, fontWeight: 600 }}>Étape {step} sur {TOTAL}</span>
+        </div>
+        <div style={{ maxWidth: '680px', margin: '0.75rem auto 0', padding: '0 1.5rem' }}>
+          <div style={{ height: '3px', background: C.borderLight, borderRadius: '99px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${(step/TOTAL)*100}%`, background: C.accent, borderRadius: '99px', transition: 'width 0.3s ease' }} />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: isMobile ? '2rem 1.25rem' : '3rem 1.5rem' }}>
+
+        {/* ── ÉTAPE 1 : Bailleur ── */}
+        {step === 1 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Loyer impayé</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Vos informations</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Vous êtes le bailleur (propriétaire ou gestionnaire).</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <FTypeBtn active={form.bailleur_type==='particulier'}   onClick={() => up('bailleur_type','particulier')}   label="Particulier"   sub="Propriétaire personne physique" />
+                <FTypeBtn active={form.bailleur_type==='professionnel'} onClick={() => up('bailleur_type','professionnel')} label="Professionnel" sub="SCI, agence, société…" />
+              </div>
+              {form.bailleur_type && (<>
+                <FField label={form.bailleur_type==='professionnel' ? "Raison sociale" : "Votre nom complet"}>
+                  <input style={inputStyle} value={form.bailleur_nom} onChange={e => up('bailleur_nom', e.target.value)}
+                    placeholder={form.bailleur_type==='professionnel' ? 'ex : SCI Dupont Immobilier' : 'ex : Marie Dupont'}
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                {form.bailleur_type==='professionnel' && (
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.75rem' }}>
+                    <FField label="SIREN/SIRET" hint="(optionnel)">
+                      <input style={inputStyle} value={form.bailleur_siren} onChange={e => up('bailleur_siren', e.target.value)} placeholder="ex : 123 456 789"
+                        onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                    </FField>
+                    <FField label="Qualité du signataire" hint="(optionnel)">
+                      <input style={inputStyle} value={form.signataire_fonction} onChange={e => up('signataire_fonction', e.target.value)} placeholder="ex : Gérant"
+                        onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                    </FField>
+                  </div>
+                )}
+                <FField label="Adresse">
+                  <input style={inputStyle} value={form.bailleur_adresse} onChange={e => up('bailleur_adresse', e.target.value)} placeholder="ex : 12 rue de la Paix"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                <div style={{ display:'grid', gridTemplateColumns:'140px 1fr', gap:'0.75rem' }}>
+                  <FField label="Code postal">
+                    <input style={inputStyle} value={form.bailleur_cp} onChange={e => up('bailleur_cp', e.target.value)} placeholder="75001"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                  <FField label="Ville">
+                    <input style={inputStyle} value={form.bailleur_ville} onChange={e => up('bailleur_ville', e.target.value)} placeholder="Paris"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                </div>
+                <FField label="Email">
+                  <input style={inputStyle} type="email" value={form.bailleur_email} onChange={e => up('bailleur_email', e.target.value)} placeholder="votre@email.fr"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                <FField label="Téléphone" hint="(optionnel)">
+                  <input style={inputStyle} value={form.bailleur_tel} onChange={e => up('bailleur_tel', e.target.value)} placeholder="06 00 00 00 00"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+              </>)}
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 2 : Locataire ── */}
+        {step === 2 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Loyer impayé</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Le locataire</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Informations sur le destinataire de la mise en demeure.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <FTypeBtn active={form.locataire_type==='particulier'}   onClick={() => up('locataire_type','particulier')}   label="Particulier"   sub="Personne physique" />
+                <FTypeBtn active={form.locataire_type==='professionnel'} onClick={() => up('locataire_type','professionnel')} label="Professionnel" sub="Société, association…" />
+              </div>
+              {form.locataire_type && (<>
+                <FField label={form.locataire_type==='professionnel' ? "Raison sociale" : "Nom complet du locataire"}>
+                  <input style={inputStyle} value={form.locataire_nom} onChange={e => up('locataire_nom', e.target.value)} placeholder="ex : Jean Martin"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                <FField label="Adresse du locataire" hint="(si différente du logement loué)">
+                  <input style={inputStyle} value={form.locataire_adresse} onChange={e => up('locataire_adresse', e.target.value)} placeholder="ex : 5 avenue des Fleurs"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                <div style={{ display:'grid', gridTemplateColumns:'140px 1fr', gap:'0.75rem' }}>
+                  <FField label="Code postal">
+                    <input style={inputStyle} value={form.locataire_cp} onChange={e => up('locataire_cp', e.target.value)} placeholder="75002"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                  <FField label="Ville">
+                    <input style={inputStyle} value={form.locataire_ville} onChange={e => up('locataire_ville', e.target.value)} placeholder="Paris"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                </div>
+              </>)}
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 3 : Bien loué & Bail ── */}
+        {step === 3 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Loyer impayé</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Le bien loué</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Informations sur le logement et le contrat de location.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              <FField label="Type de bien">
+                <div style={{ display:'flex', gap:'0.6rem', flexWrap:'wrap' }}>
+                  {[['logement','Logement'],['local','Local commercial'],['parking','Parking'],['autre','Autre']].map(([v,l]) => (
+                    <button key={v} type="button" onClick={() => up('bien_type', v)} style={{ padding:'0.5rem 0.875rem', borderRadius:'20px', border:`1.5px solid ${form.bien_type===v ? C.accent : C.borderLight}`, background: form.bien_type===v ? 'rgba(201,169,110,0.1)' : '#fff', fontFamily:F, fontWeight: form.bien_type===v ? 700 : 400, fontSize:'0.82rem', color: form.bien_type===v ? C.accent : C.textMid, cursor:'pointer', transition:'all 0.15s' }}>{l}</button>
+                  ))}
+                </div>
+              </FField>
+              <FField label="Adresse du bien loué">
+                <input style={inputStyle} value={form.bien_adresse} onChange={e => up('bien_adresse', e.target.value)} placeholder="ex : 8 rue Victor Hugo"
+                  onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+              </FField>
+              <div style={{ display:'grid', gridTemplateColumns:'140px 1fr', gap:'0.75rem' }}>
+                <FField label="Code postal">
+                  <input style={inputStyle} value={form.bien_cp} onChange={e => up('bien_cp', e.target.value)} placeholder="75003"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                <FField label="Ville">
+                  <input style={inputStyle} value={form.bien_ville} onChange={e => up('bien_ville', e.target.value)} placeholder="Paris"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+              </div>
+              <FField label="Date de signature du bail">
+                <input style={inputStyle} type="date" value={form.bail_date} onChange={e => up('bail_date', e.target.value)}
+                  onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+              </FField>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 4 : Impayés ── */}
+        {step === 4 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Loyer impayé</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Loyers & charges impayés</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Ajoutez chaque période impayée. Le solde est calculé automatiquement.</p>
+            <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
+              {form.loyers.map((l, idx) => {
+                const solde = Math.max(0, (parseFloat(l.loyer)||0) + (parseFloat(l.charges)||0) - (parseFloat(l.paye)||0));
+                return (
+                  <div key={l.id} style={{ background:'#fff', border:`1.5px solid ${C.borderLight}`, borderRadius:'12px', padding:'1.25rem' }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'1rem' }}>
+                      <span style={{ fontWeight:700, color:C.textDark, fontSize:'0.9rem' }}>Période {idx+1}</span>
+                      {form.loyers.length > 1 && (
+                        <button type="button" onClick={() => up('loyers', form.loyers.filter((_,i) => i !== idx))} style={{ background:'none', border:'none', cursor:'pointer', color:'#999', fontSize:'0.8rem', fontFamily:F }}>Supprimer</button>
+                      )}
+                    </div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem' }}>
+                      <FField label="Période concernée">
+                        <input style={inputStyle} value={l.periode} onChange={e => up('loyers', form.loyers.map((x,i) => i===idx ? {...x, periode: e.target.value} : x))} placeholder="ex : Janvier 2025"
+                          onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                      </FField>
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.75rem' }}>
+                        <FField label="Loyer dû (€)">
+                          <input style={inputStyle} type="number" min="0" value={l.loyer} onChange={e => up('loyers', form.loyers.map((x,i) => i===idx ? {...x, loyer: e.target.value} : x))} placeholder="ex : 800"
+                            onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                        </FField>
+                        <FField label="Charges dues (€)">
+                          <input style={inputStyle} type="number" min="0" value={l.charges} onChange={e => up('loyers', form.loyers.map((x,i) => i===idx ? {...x, charges: e.target.value} : x))} placeholder="ex : 80"
+                            onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                        </FField>
+                      </div>
+                      <FField label="Montant déjà réglé (€)">
+                        <input style={inputStyle} type="number" min="0" value={l.paye} onChange={e => up('loyers', form.loyers.map((x,i) => i===idx ? {...x, paye: e.target.value} : x))} placeholder="0"
+                          onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                      </FField>
+                      <div style={{ background:'rgba(201,169,110,0.07)', borderRadius:'8px', padding:'0.75rem 1rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                        <span style={{ fontSize:'0.85rem', color:C.textMid }}>Solde restant dû</span>
+                        <span style={{ fontWeight:700, color:C.accent, fontSize:'1rem' }}>{fmtEur(solde)} €</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              <button type="button" onClick={() => up('loyers', [...form.loyers, newMois()])} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'0.5rem', padding:'0.875rem', borderRadius:'10px', border:`2px dashed ${C.borderLight}`, background:'transparent', fontFamily:F, fontWeight:600, fontSize:'0.875rem', color:C.textMid, cursor:'pointer', transition:'all 0.15s' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Ajouter une période
+              </button>
+              {form.loyers.length > 0 && (
+                <div style={{ background:C.primary, borderRadius:'10px', padding:'1rem 1.25rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ color:'rgba(255,255,255,0.7)', fontSize:'0.9rem', fontWeight:600 }}>Total dû</span>
+                  <span style={{ color:C.accent, fontWeight:700, fontSize:'1.2rem' }}>{fmtEur(totalDu)} €</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 5 : Contexte ── */}
+        {step === 5 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Loyer impayé</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Historique & contexte</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Ces informations personnalisent la lettre et renforcent sa valeur juridique.</p>
+            <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
+              {/* Relances */}
+              <div style={{ background:'#fff', border:`1.5px solid ${C.borderLight}`, borderRadius:'12px', padding:'1.5rem' }}>
+                <div style={{ display:'flex', alignItems:'flex-start', gap:'1rem' }}>
+                  <FCheckbox checked={form.relances} onChange={() => up('relances', !form.relances)} />
+                  <div>
+                    <div style={{ fontWeight:700, color:C.textDark, fontSize:'0.95rem', marginBottom:'0.2rem' }}>Des relances ont déjà été effectuées</div>
+                    <div style={{ fontSize:'0.82rem', color:'#888' }}>Courriers, emails, appels téléphoniques…</div>
+                  </div>
+                </div>
+                {form.relances && (
+                  <div style={{ marginTop:'1.25rem', paddingLeft:'2.25rem', display:'flex', flexDirection:'column', gap:'0.875rem' }}>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.75rem' }}>
+                      <FField label="Nombre de relances">
+                        <input style={inputStyle} type="number" min="1" value={form.nb_relances} onChange={e => up('nb_relances', e.target.value)} placeholder="ex : 2"
+                          onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                      </FField>
+                      <FField label="Date de la dernière relance">
+                        <input style={inputStyle} type="date" value={form.date_derniere_relance} onChange={e => up('date_derniere_relance', e.target.value)}
+                          onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                      </FField>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* Contestation */}
+              <div style={{ background:'#fff', border:`1.5px solid ${C.borderLight}`, borderRadius:'12px', padding:'1.5rem' }}>
+                <div style={{ display:'flex', alignItems:'flex-start', gap:'1rem' }}>
+                  <FCheckbox checked={form.contestation} onChange={() => up('contestation', !form.contestation)} />
+                  <div>
+                    <div style={{ fontWeight:700, color:C.textDark, fontSize:'0.95rem', marginBottom:'0.2rem' }}>Le locataire conteste les sommes</div>
+                    <div style={{ fontSize:'0.82rem', color:'#888' }}>Ajoute un paragraphe demandant une contestation écrite et motivée.</div>
+                  </div>
+                </div>
+              </div>
+              {/* Échéancier */}
+              <div style={{ background:'#fff', border:`1.5px solid ${C.borderLight}`, borderRadius:'12px', padding:'1.5rem' }}>
+                <div style={{ display:'flex', alignItems:'flex-start', gap:'1rem' }}>
+                  <FCheckbox checked={form.echeancier} onChange={() => up('echeancier', !form.echeancier)} />
+                  <div>
+                    <div style={{ fontWeight:700, color:C.textDark, fontSize:'0.95rem', marginBottom:'0.2rem' }}>Ouvert à un échéancier de paiement</div>
+                    <div style={{ fontSize:'0.82rem', color:'#888' }}>Propose une solution amiable si difficultés passagères.</div>
+                  </div>
+                </div>
+                {form.echeancier && (
+                  <div style={{ marginTop:'1.25rem', paddingLeft:'2.25rem' }}>
+                    <FField label="Contact pour l'échéancier" hint="(téléphone ou email)">
+                      <input style={inputStyle} value={form.contact_echeancier} onChange={e => up('contact_echeancier', e.target.value)} placeholder="ex : 06 00 00 00 00 / contact@email.fr"
+                        onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                    </FField>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 6 : Modalités de paiement ── */}
+        {step === 6 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Loyer impayé</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Modalités de paiement</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Comment souhaitez-vous être remboursé(e) ?</p>
+            <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
+              <div style={{ display:'flex', gap:'0.75rem' }}>
+                <FTypeBtn active={form.mode_paiement==='virement'}  onClick={() => up('mode_paiement','virement')}  label="Virement"  sub="IBAN / BIC" />
+                <FTypeBtn active={form.mode_paiement==='cheque'}    onClick={() => up('mode_paiement','cheque')}    label="Chèque"    sub="À l'ordre de…" />
+                <FTypeBtn active={form.mode_paiement==='autre'}     onClick={() => up('mode_paiement','autre')}     label="Autre"     sub="À préciser" />
+              </div>
+              {form.mode_paiement==='virement' && (
+                <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem' }}>
+                  <FField label="Titulaire du compte">
+                    <input style={inputStyle} value={form.titulaire_compte} onChange={e => up('titulaire_compte', e.target.value)} placeholder="Nom du titulaire"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                  <FField label="IBAN">
+                    <input style={inputStyle} value={form.iban} onChange={e => up('iban', e.target.value)} placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                  <FField label="BIC" hint="(optionnel)">
+                    <input style={inputStyle} value={form.bic} onChange={e => up('bic', e.target.value)} placeholder="ex : BNPAFRPP"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                </div>
+              )}
+              {form.mode_paiement==='cheque' && (
+                <FField label="Chèque à l'ordre de">
+                  <input style={inputStyle} value={form.ordre_cheque} onChange={e => up('ordre_cheque', e.target.value)} placeholder="ex : Marie Dupont"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+              )}
+              {form.mode_paiement==='autre' && (
+                <FField label="Préciser le mode de paiement">
+                  <input style={inputStyle} value={form.preciser_mode} onChange={e => up('preciser_mode', e.target.value)} placeholder="ex : Espèces contre reçu"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+              )}
+              <FField label="Délai accordé pour le règlement">
+                <div style={{ display:'flex', gap:'0.6rem', flexWrap:'wrap' }}>
+                  {[['8','8 jours'],['15','15 jours'],['30','30 jours']].map(([v,l]) => (
+                    <button key={v} type="button" onClick={() => up('delai_paiement', v)} style={{ padding:'0.5rem 0.875rem', borderRadius:'20px', border:`1.5px solid ${form.delai_paiement===v ? C.accent : C.borderLight}`, background: form.delai_paiement===v ? 'rgba(201,169,110,0.1)' : '#fff', fontFamily:F, fontWeight: form.delai_paiement===v ? 700 : 400, fontSize:'0.82rem', color: form.delai_paiement===v ? C.accent : C.textMid, cursor:'pointer', transition:'all 0.15s' }}>{l}</button>
+                  ))}
+                  <input style={{ ...inputStyle, width:'100px', padding:'0.5rem 0.75rem' }} type="number" min="1" placeholder="Autre…"
+                    value={['8','15','30'].includes(form.delai_paiement) ? '' : form.delai_paiement}
+                    onChange={e => up('delai_paiement', e.target.value)}
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </div>
+              </FField>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 7 : Pièces jointes ── */}
+        {step === 7 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Loyer impayé</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Pièces jointes</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Joignez les documents qui accompagneront votre mise en demeure.</p>
+            <FUploadZone label="Copie du contrat de bail" required files={uploadedFiles.bail} onAdd={f => addFiles('bail',f)} onRemove={i => removeFile('bail',i)} />
+            <FUploadZone label="Décompte des loyers / relevé d'impayés" hint="(optionnel)" files={uploadedFiles.decompte} onAdd={f => addFiles('decompte',f)} onRemove={i => removeFile('decompte',i)} />
+            <FUploadZone label="Preuve(s) de relance(s)" hint="(optionnel)" files={uploadedFiles.relances} onAdd={f => addFiles('relances',f)} onRemove={i => removeFile('relances',i)} />
+            <FUploadZone label="Autres documents" hint="(optionnel)" files={uploadedFiles.autres} onAdd={f => addFiles('autres',f)} onRemove={i => removeFile('autres',i)} />
+            {uploadedFiles.bail.length === 0 && (
+              <div style={{ background:'rgba(201,169,110,0.08)', border:`1px solid rgba(201,169,110,0.3)`, borderRadius:'8px', padding:'0.75rem 1rem', fontSize:'0.82rem', color:C.textMid, display:'flex', gap:'0.5rem', alignItems:'flex-start' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0, marginTop:'1px' }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Nous recommandons d'inclure une copie du bail pour renforcer la valeur juridique de votre courrier.</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── ÉTAPE 8 : Aperçu & Envoi ── */}
+        {step === 8 && (() => {
+          const A4W = 794, A4H = 1123, GUTTER = 80, CONTENT_H = A4H - GUTTER * 2;
+          const scale = isMobile ? 0.42 : 0.68;
+          const fmtDate = d => d ? new Date(d+'T12:00:00').toLocaleDateString('fr-FR') : '—';
+          const bailDateFmt = form.bail_date ? new Date(form.bail_date+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—';
+
+          const bodyJSX = (
+            <>
+              <p style={{ marginBottom:'1.25rem' }}>
+                Je me permets de vous contacter concernant le contrat de location conclu le <strong>{bailDateFmt}</strong>, portant sur le {form.bien_type==='logement' ? 'logement' : form.bien_type==='local' ? 'local commercial' : 'bien'} situé à l'adresse suivante : <strong>{form.bien_adresse}{form.bien_cp ? `, ${form.bien_cp}` : ''}{form.bien_ville ? ` ${form.bien_ville}` : ''}</strong>.
+              </p>
+              <p style={{ marginBottom:'1.25rem' }}>
+                Aux termes de ce contrat de location, vous êtes tenu(e) de régler le loyer et les charges locatives aux échéances convenues. Or, sauf erreur ou omission de ma part, plusieurs sommes demeurent impayées à ce jour au titre de votre occupation du logement.
+              </p>
+              <p style={{ marginBottom:'0.75rem' }}>
+                {form.loyers.length > 1 ? 'Les sommes impayées sont les suivantes :' : "L'impayé concerne l'échéance suivante :"}
+              </p>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'11.5px', marginBottom:'1.25rem' }}>
+                <thead>
+                  <tr style={{ background:'#f2f2f2' }}>
+                    {['Période','Loyer dû','Charges','Déjà réglé','Solde dû'].map(h => (
+                      <th key={h} style={{ textAlign: h==='Période' ? 'left' : 'right', padding:'5px 8px', border:'1px solid #d8d8d8', fontWeight:700 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {form.loyers.map(l => {
+                    const solde = Math.max(0,(parseFloat(l.loyer)||0)+(parseFloat(l.charges)||0)-(parseFloat(l.paye)||0));
+                    return (
+                      <tr key={l.id}>
+                        <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8' }}>{l.periode||'—'}</td>
+                        <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8', textAlign:'right' }}>{l.loyer ? fmtEur(parseFloat(l.loyer))+' €' : '—'}</td>
+                        <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8', textAlign:'right' }}>{l.charges && parseFloat(l.charges)>0 ? fmtEur(parseFloat(l.charges))+' €' : '—'}</td>
+                        <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8', textAlign:'right' }}>{l.paye && parseFloat(l.paye)>0 ? fmtEur(parseFloat(l.paye))+' €' : '—'}</td>
+                        <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8', textAlign:'right', fontWeight:700 }}>{fmtEur(solde)} €</td>
+                      </tr>
+                    );
+                  })}
+                  <tr style={{ background:'#f9f5ee' }}>
+                    <td colSpan={4} style={{ padding:'5px 8px', border:'1px solid #d8d8d8', fontWeight:700, textAlign:'right' }}>Total dû</td>
+                    <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8', fontWeight:700, textAlign:'right' }}>{fmtEur(totalDu)} €</td>
+                  </tr>
+                </tbody>
+              </table>
+              {form.relances && form.nb_relances && (
+                <p style={{ marginBottom:'1.25rem' }}>
+                  Malgré mes précédentes relances{form.nb_relances ? ` (${form.nb_relances} au total)` : ''}{form.date_derniere_relance ? `, dont la dernière en date du ${new Date(form.date_derniere_relance+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}` : ''}, aucun règlement complet ne m'est parvenu à ce jour.
+                </p>
+              )}
+              <p style={{ marginBottom:'1.25rem' }}>
+                Votre absence de paiement constitue un manquement grave à vos obligations contractuelles de locataire, notamment à votre obligation de payer le loyer et les charges récupérables aux termes convenus.
+              </p>
+              <p style={{ marginBottom:'1.25rem' }}>
+                Par la présente, je vous mets donc formellement en demeure de procéder au règlement intégral de la somme de <strong>{fmtEur(totalDu)} €</strong> dans un délai de <strong>{form.delai_paiement} jours</strong> à compter de la réception de ce courrier.
+              </p>
+              {form.mode_paiement==='virement' && form.iban && (<>
+                <p style={{ marginBottom:'0.6rem' }}>Le paiement devra être effectué par virement bancaire aux coordonnées suivantes :</p>
+                <table style={{ borderCollapse:'collapse', fontSize:'11.5px', marginBottom:'1.25rem' }}>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8', fontWeight:700, background:'#f2f2f2', whiteSpace:'nowrap' }}>Titulaire</td>
+                      <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8' }}>{form.titulaire_compte||'—'}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8', fontWeight:700, background:'#f2f2f2' }}>IBAN</td>
+                      <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8', fontFamily:'monospace', letterSpacing:'0.04em' }}>{form.iban}</td>
+                    </tr>
+                    {form.bic && <tr>
+                      <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8', fontWeight:700, background:'#f2f2f2' }}>BIC</td>
+                      <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8' }}>{form.bic}</td>
+                    </tr>}
+                  </tbody>
+                </table>
+              </>)}
+              {form.mode_paiement==='cheque' && form.ordre_cheque && (
+                <p style={{ marginBottom:'1.25rem' }}>Le paiement devra être effectué par chèque à l'ordre de : <strong>{form.ordre_cheque}</strong>.</p>
+              )}
+              {form.mode_paiement==='autre' && form.preciser_mode && (
+                <p style={{ marginBottom:'1.25rem' }}>Le paiement devra être effectué par : {form.preciser_mode}.</p>
+              )}
+              {form.echeancier && (
+                <p style={{ marginBottom:'1.25rem' }}>
+                  Si cette situation résulte de difficultés passagères, je reste disposé(e) à examiner une solution amiable, notamment la mise en place d'un échéancier écrit{form.contact_echeancier ? `. Dans ce cas, je vous invite à me contacter dans les plus brefs délais au ${form.contact_echeancier}` : ''}.
+                </p>
+              )}
+              {form.contestation && (
+                <p style={{ marginBottom:'1.25rem' }}>
+                  Par ailleurs, j'ai pris note de vos réserves concernant les sommes réclamées. Afin de permettre l'examen de votre contestation, je vous remercie de bien vouloir me transmettre, dans le même délai, l'ensemble de vos motifs précis, écrits et justifiés, accompagnés de tout justificatif utile.
+                </p>
+              )}
+              <p style={{ marginBottom:'1.25rem' }}>
+                À défaut de paiement intégral, d'accord écrit ou de contestation sérieuse et motivée dans le délai imparti, je me réserve le droit d'engager, sans nouvelle relance, toute procédure utile à la préservation de mes droits. Cette procédure pourra notamment comprendre la saisine d'un commissaire de justice aux fins de délivrance d'un commandement de payer visant la clause résolutoire de votre bail, puis, si la situation n'est pas régularisée, la saisine de la juridiction compétente afin d'obtenir le paiement des sommes dues, votre expulsion et la résiliation du bail dans les conditions prévues par la loi.
+              </p>
+              <p style={{ marginBottom:'0' }}>Je vous invite donc à régulariser votre situation sans délai afin d'éviter toute aggravation du dossier.</p>
+            </>
+          );
+
+          const letterJSX = (
+            <>
+              <div style={{ marginBottom:'2.5rem' }}>
+                <div style={{ fontWeight:700, fontSize:'13.5px' }}>{form.bailleur_nom}</div>
+                <div>{form.bailleur_adresse}</div>
+                <div>{form.bailleur_cp} {form.bailleur_ville}</div>
+                {form.bailleur_email && <div style={{ fontSize:'11px', color:'#666' }}>{form.bailleur_email}</div>}
+                {form.bailleur_tel && <div style={{ fontSize:'11px', color:'#666' }}>{form.bailleur_tel}</div>}
+                {form.bailleur_siren && <div style={{ fontSize:'11px', color:'#666' }}>SIREN : {form.bailleur_siren}</div>}
+              </div>
+              <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:'2.5rem' }}>
+                <div style={{ textAlign:'left' }}>
+                  <div style={{ fontWeight:700, fontSize:'13.5px' }}>{form.locataire_nom}</div>
+                  <div>{form.locataire_adresse}</div>
+                  <div>{form.locataire_cp} {form.locataire_ville}</div>
+                </div>
+              </div>
+              <div style={{ textAlign:'right', color:'#555', marginBottom:'2rem' }}>{form.bailleur_ville||'Ville'}, le {today}</div>
+              <div style={{ marginBottom:'1.75rem', paddingBottom:'1rem', borderBottom:'1px solid #eee' }}>
+                <div><strong>Objet :</strong> Mise en demeure de payer — loyer{form.loyers.length>1?'s':''} et/ou charges impayé{form.loyers.length>1?'s':''}</div>
+              </div>
+              <div style={{ filter: showFullLetter ? 'none' : 'blur(4px)', userSelect: showFullLetter ? 'text' : 'none', WebkitUserSelect: showFullLetter ? 'text' : 'none', transition:'filter 0.3s' }}>
+                <div style={{ marginBottom:'1.5rem' }}>Madame, Monsieur,</div>
+                {bodyJSX}
+                <div style={{ marginTop:'2rem' }}>
+                  Dans l'attente d'une régularisation rapide de votre part, je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+                </div>
+              </div>
+              <div style={{ marginTop:'1.5rem', display:'inline-block' }}>
+                {signature
+                  ? <img src={signature} alt="signature" style={{ display:'block', width:'170px', height:'58px', objectFit:'contain', objectPosition:'left bottom', marginBottom:'2px' }} />
+                  : <div style={{ height:'44px' }} />
+                }
+                <div style={{ fontWeight:700, fontSize:'13.5px' }}>{form.bailleur_nom}</div>
+                {form.signataire_fonction && <div style={{ fontSize:'11px', color:'#666' }}>{form.signataire_fonction}</div>}
+              </div>
+            </>
+          );
+
+          const contentDivStyle = { width:A4W, padding:'0 80px', boxSizing:'border-box', fontFamily:"'DM Sans', sans-serif", fontSize:'13px', lineHeight:1.7, color:'#111', userSelect:'none', WebkitUserSelect:'none' };
+          const ends   = [...breakPoints, letterH > 0 ? letterH : CONTENT_H];
+          const slices = ends.map((end,i) => ({ start: i===0 ? 0 : ends[i-1], end })).filter(s => s.end > s.start);
+
+          return (
+            <div>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.5rem', flexWrap:'wrap', gap:'0.75rem' }}>
+                <h1 style={{ fontFamily:F, fontSize:'clamp(1.5rem,3vw,2rem)', fontWeight:700, color:C.textDark, margin:0 }}>Votre lettre est prête</h1>
+                <button type="button" onClick={() => setShowFullLetter(v => !v)} style={{ display:'flex', alignItems:'center', gap:'0.4rem', padding:'0.5rem 1rem', borderRadius:'8px', border:`1.5px solid ${showFullLetter ? C.accent : C.borderLight}`, background: showFullLetter ? 'rgba(201,169,110,0.1)' : '#fff', fontFamily:F, fontWeight:600, fontSize:'0.8rem', color: showFullLetter ? C.accent : C.textMuted, cursor:'pointer', transition:'all 0.2s' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  {showFullLetter ? 'Masquer le contenu' : 'Visualiser la lettre'}
+                </button>
+              </div>
+              <p style={{ color:C.textMid, fontSize:'0.95rem', marginBottom:'2rem' }}>Relisez votre mise en demeure avant de l'envoyer.</p>
+
+              {/* A4 preview */}
+              <>
+                <div ref={letterInnerRef} style={{ ...contentDivStyle, position:'fixed', top:'-9999px', left:'-9999px', visibility:'hidden', pointerEvents:'none' }}>
+                  {letterJSX}
+                </div>
+                <div style={{ background:'#d8d8d4', padding:'1.25rem 1rem', marginBottom:'2rem', borderRadius:'12px', display:'flex', flexDirection:'column', alignItems:'center', gap:'1rem' }}>
+                  {(slices.length ? slices : [{ start:0, end:CONTENT_H }]).map(({ start, end }, pageIdx) => {
+                    const sliceH = end - start;
+                    const numPages = (slices.length || 1);
+                    return (
+                      <div key={pageIdx} style={{ display:'flex', flexDirection:'column', alignItems:'center', width:'100%' }}>
+                        {numPages > 1 && <div style={{ fontSize:'0.68rem', color:'#888', marginBottom:'0.35rem', fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>Page {pageIdx+1} / {numPages}</div>}
+                        <div style={{ width:A4W*scale, height:A4H*scale, background:'#fff', boxShadow:'0 4px 32px rgba(0,0,0,0.22)', flexShrink:0, overflow:'hidden', position:'relative' }}>
+                          <div style={{ height:GUTTER*scale }} />
+                          <div style={{ height:sliceH*scale, overflow:'hidden', position:'relative' }}>
+                            <div style={{ ...contentDivStyle, position:'absolute', top:-(start*scale), left:0, transform:`scale(${scale})`, transformOrigin:'top left' }}>
+                              {letterJSX}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+
+              {/* Signature */}
+              <div style={{ marginBottom:'1.5rem' }}>
+                <p style={{ fontWeight:700, color:C.textDark, fontSize:'0.875rem', marginBottom:'0.75rem' }}>Votre signature <span style={{ fontWeight:400, color:'#999', fontSize:'0.78rem' }}>(optionnel)</span></p>
+                <SignaturePad onChange={setSignature} />
+                {signature && <p style={{ fontSize:'0.75rem', color:'#66a', marginTop:'0.4rem' }}>✓ Signature enregistrée</p>}
+              </div>
+
+              {/* Récap uploads */}
+              {(uploadedFiles.bail.length + uploadedFiles.decompte.length + uploadedFiles.relances.length + uploadedFiles.autres.length) > 0 && (
+                <div style={{ background:'#fff', border:`1.5px solid ${C.borderLight}`, borderRadius:'12px', padding:'1.5rem', marginBottom:'1.5rem' }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'1rem' }}>
+                    <p style={{ fontWeight:700, color:C.textDark, fontSize:'0.95rem', margin:0 }}>Pièces jointes</p>
+                    <button type="button" onClick={() => setStep(7)} style={{ fontSize:'0.78rem', color:C.accent, background:'none', border:'none', cursor:'pointer', fontFamily:F, fontWeight:600, textDecoration:'underline' }}>Modifier</button>
+                  </div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
+                    {[{key:'bail',label:'Contrat de bail'},{key:'decompte',label:'Décompte des loyers'},{key:'relances',label:'Preuves de relance'},{key:'autres',label:'Autres documents'}]
+                      .filter(({key}) => uploadedFiles[key].length > 0)
+                      .map(({key,label}) => (
+                        <div key={key} style={{ display:'flex', alignItems:'center', gap:'0.6rem', fontSize:'0.85rem', color:C.textMid }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                          <span style={{ color:C.textDark, fontWeight:600 }}>{label}</span>
+                          <span style={{ color:'#999' }}>— {uploadedFiles[key].length} fichier{uploadedFiles[key].length>1?'s':''}</span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Récap */}
+              <div style={{ background:'rgba(201,169,110,0.07)', border:`1px solid rgba(201,169,110,0.25)`, borderRadius:'10px', padding:'1rem 1.25rem', marginBottom:'2rem', fontSize:'0.85rem', color:C.textMid }}>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem 2rem' }}>
+                  <span>📬 Envoi par <strong style={{ color:C.textDark }}>lettre recommandée AR</strong></span>
+                  <span>⏱ Délai accordé : <strong style={{ color:C.textDark }}>{form.delai_paiement} jours</strong></span>
+                  <span>💶 Total réclamé : <strong style={{ color:C.textDark }}>{fmtEur(totalDu)} €</strong></span>
+                </div>
+              </div>
+
+              {paymentError && <p style={{ color:'#c0392b', fontSize:'0.85rem', marginBottom:'1rem' }}>{paymentError}</p>}
+              <button onClick={async () => {
+                setPaymentLoading(true); setPaymentError('');
+                try {
+                  const res = await fetch('/api/create-checkout-session', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: form.bailleur_email, userId: user?.id || null,
+                      letterData: { expediteurType: form.bailleur_type, expediteurNom: form.bailleur_nom, expediteurAdresse: form.bailleur_adresse, expediteurCP: form.bailleur_cp, expediteurVille: form.bailleur_ville, destinataireType: form.locataire_type, destinataireNom: form.locataire_nom, destinataireAdresse: form.locataire_adresse, destinataireCP: form.locataire_cp, destinataireVille: form.locataire_ville, litige: 'loyer', montant: totalDu.toFixed(2), delai: form.delai_paiement, description: `Loyer impayé — ${form.bien_adresse}` }
+                    }),
+                  });
+                  const { url, error } = await res.json();
+                  if (error) throw new Error(error);
+                  window.location.href = url;
+                } catch (e) { setPaymentError(e.message); }
+                finally { setPaymentLoading(false); }
+              }} style={{ width:'100%', background: paymentLoading ? '#999' : C.accent, border:'none', padding:'1.1rem 2rem', borderRadius:'10px', fontFamily:F, fontWeight:700, fontSize:'1.05rem', color:C.textDark, cursor: paymentLoading ? 'not-allowed' : 'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'0.6rem', boxShadow:'0 4px 24px rgba(201,169,110,0.3)', transition:'all 0.2s' }}>
+                {paymentLoading ? 'Redirection vers le paiement…' : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>Envoyer ma lettre</>}
+              </button>
+              <p style={{ textAlign:'center', fontSize:'0.78rem', color:C.textMuted, marginTop:'0.75rem' }}>
+                Paiement sécurisé · Envoi en LRAR via La Poste · Accusé de réception inclus
+              </p>
+            </div>
+          );
+        })()}
+
+        {/* Navigation */}
+        {step < 8 && (
+          <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'2.5rem' }}>
+            <button onClick={() => { if (canNext()) setStep(s => s+1); }} style={{ background: canNext() ? C.accent : '#E0E0DC', border:`2px solid ${canNext() ? C.accent : '#E0E0DC'}`, padding:'0.875rem 2rem', borderRadius:'8px', fontFamily:F, fontWeight:700, fontSize:'0.9rem', color: canNext() ? C.textDark : '#999', cursor: canNext() ? 'pointer' : 'not-allowed', transition:'all 0.2s' }}
+              onMouseEnter={e => { if (canNext()) { e.currentTarget.style.background=C.accentHover; e.currentTarget.style.borderColor=C.accentHover; } }}
+              onMouseLeave={e => { if (canNext()) { e.currentTarget.style.background=C.accent; e.currentTarget.style.borderColor=C.accent; } }}>
+              {step === 7 ? 'Aperçu de ma lettre →' : 'Continuer →'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ── Garant (Caution solidaire) ─────────────────────────────── */
+const GarantImpayeForm = ({ onBack, user }) => {
+  const isMobile = useIsMobile();
+  const [step, setStep] = useState(1);
+  const TOTAL = 7;
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError]     = useState('');
+  const [showFullLetter, setShowFullLetter] = useState(false);
+  const [signature, setSignature]           = useState(null);
+  const [letterH, setLetterH]               = useState(0);
+  const [breakPoints, setBreakPoints]       = useState([]);
+  const letterInnerRef = useRef(null);
+
+  useEffect(() => {
+    const el = letterInnerRef.current;
+    if (!el) return;
+    const h = el.offsetHeight;
+    if (h === 0) return;
+    const CONT_H = 1123 - 80 * 2;
+    const containerTop = el.getBoundingClientRect().top;
+    function findBreakY(parent, targetY) {
+      let best = 0;
+      for (const child of parent.children) {
+        const r = child.getBoundingClientRect();
+        const top = r.top - containerTop, bottom = r.bottom - containerTop;
+        if (bottom <= targetY) { best = bottom; }
+        else if (top < targetY) {
+          const tag = child.tagName.toLowerCase();
+          if (tag === 'div' && child.children.length > 0) {
+            const inner = findBreakY(child, targetY);
+            best = inner > best ? inner : (top > best ? top : best);
+          } else { if (top > best) best = top; }
+          break;
+        } else break;
+      }
+      return best;
+    }
+    const newBreaks = [];
+    let targetY = CONT_H;
+    while (targetY < h) {
+      let breakY = findBreakY(el, targetY);
+      const prev = newBreaks[newBreaks.length - 1] ?? 0;
+      if (breakY <= prev) breakY = targetY;
+      newBreaks.push(breakY);
+      targetY = breakY + CONT_H;
+    }
+    const same = h === letterH && newBreaks.join() === breakPoints.join();
+    if (!same) { setLetterH(h); setBreakPoints(newBreaks); }
+  });
+
+  const newMois = () => ({ id: Date.now() + Math.random(), periode: '', loyer: '', charges: '0', paye: '0' });
+
+  const [form, setForm] = useState({
+    bailleur_type: '', bailleur_nom: '', bailleur_adresse: '', bailleur_cp: '', bailleur_ville: '',
+    bailleur_email: user?.email || '', bailleur_tel: '', bailleur_siren: '',
+    garant_civilite: 'M.', garant_nom: '', garant_adresse: '', garant_cp: '', garant_ville: '',
+    locataire_civilite: 'M.', locataire_nom: '',
+    bien_adresse: '', caution_date: '',
+    loyers: [newMois()],
+    delai_paiement: '8',
+    mode_paiement: 'virement', iban: '', bic: '', titulaire_compte: '', ordre_cheque: '', preciser_mode: '',
+    contact_tel: '', contact_email: '',
+  });
+  const up = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const [uploadedFiles, setUploadedFiles] = useState({ caution: [], bail: [], decompte: [], autres: [] });
+  const addFiles   = (key, files) => setUploadedFiles(p => ({ ...p, [key]: [...p[key], ...files] }));
+  const removeFile = (key, idx)   => setUploadedFiles(p => ({ ...p, [key]: p[key].filter((_, i) => i !== idx) }));
+
+  const totalDu = form.loyers.reduce((sum, l) =>
+    sum + Math.max(0, (parseFloat(l.loyer)||0) + (parseFloat(l.charges)||0) - (parseFloat(l.paye)||0)), 0);
+  const fmtEur = n => n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const inputStyle = {
+    width: '100%', padding: '0.85rem 1rem', border: `1.5px solid ${C.borderLight}`, borderRadius: '8px',
+    fontFamily: F, fontSize: '0.925rem', color: C.textDark, background: '#fff', outline: 'none',
+    boxSizing: 'border-box', transition: 'border-color 0.2s',
+  };
+
+  const canNext = () => {
+    if (step === 1) return !!(form.bailleur_type && form.bailleur_nom && form.bailleur_adresse && form.bailleur_cp && form.bailleur_ville && form.bailleur_email && form.bailleur_email.includes('@'));
+    if (step === 2) return !!(form.garant_nom && form.garant_adresse && form.garant_cp && form.garant_ville);
+    if (step === 3) return !!(form.locataire_nom && form.bien_adresse && form.caution_date);
+    if (step === 4) return form.loyers.length > 0 && form.loyers.every(l => l.periode && l.loyer);
+    if (step === 5) return !!(form.delai_paiement && form.mode_paiement && (form.mode_paiement !== 'virement' || (form.iban && form.titulaire_compte)));
+    return true;
+  };
+
+  const today = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: F }}>
+      {/* Header */}
+      <div style={{ background: '#fff', borderBottom: `1px solid ${C.borderLight}`, padding: '1rem 0' }}>
+        <div style={{ maxWidth: '680px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button onClick={step === 1 ? onBack : () => setStep(s => s - 1)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', color: C.textMuted, fontFamily: F, fontSize: '0.875rem' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+            {step === 1 ? 'Retour' : 'Précédent'}
+          </button>
+          <span style={{ fontSize: '0.8rem', color: C.textMuted, fontWeight: 600 }}>Étape {step} sur {TOTAL}</span>
+        </div>
+        <div style={{ maxWidth: '680px', margin: '0.75rem auto 0', padding: '0 1.5rem' }}>
+          <div style={{ height: '3px', background: C.borderLight, borderRadius: '99px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${(step/TOTAL)*100}%`, background: C.accent, borderRadius: '99px', transition: 'width 0.3s ease' }} />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: isMobile ? '2rem 1.25rem' : '3rem 1.5rem' }}>
+
+        {/* ── ÉTAPE 1 : Bailleur ── */}
+        {step === 1 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Garant — Appel en caution</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Vos informations</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Vous êtes le bailleur qui engage la caution solidaire.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <FTypeBtn active={form.bailleur_type==='particulier'}   onClick={() => up('bailleur_type','particulier')}   label="Particulier"   sub="Propriétaire personne physique" />
+                <FTypeBtn active={form.bailleur_type==='professionnel'} onClick={() => up('bailleur_type','professionnel')} label="Professionnel" sub="SCI, agence, société" />
+              </div>
+              {form.bailleur_type && (<>
+                <FField label={form.bailleur_type==='professionnel' ? 'Raison sociale' : 'Nom complet'} required>
+                  <input style={inputStyle} value={form.bailleur_nom} onChange={e => up('bailleur_nom', e.target.value)}
+                    placeholder={form.bailleur_type==='professionnel' ? 'ex : Dupont Immobilier SARL' : 'ex : Marie Dupont'}
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                <FField label="Adresse" required>
+                  <input style={inputStyle} value={form.bailleur_adresse} onChange={e => up('bailleur_adresse', e.target.value)}
+                    placeholder="ex : 12 rue de la Paix"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '0.75rem' }}>
+                  <FField label="Code postal" required>
+                    <input style={inputStyle} value={form.bailleur_cp} onChange={e => up('bailleur_cp', e.target.value)} placeholder="75001"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                  <FField label="Ville" required>
+                    <input style={inputStyle} value={form.bailleur_ville} onChange={e => up('bailleur_ville', e.target.value)} placeholder="Paris"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                </div>
+                <FField label="Email" required>
+                  <input style={inputStyle} type="email" value={form.bailleur_email} onChange={e => up('bailleur_email', e.target.value)}
+                    placeholder="votre@email.com"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                <FField label="Téléphone">
+                  <input style={inputStyle} value={form.bailleur_tel} onChange={e => up('bailleur_tel', e.target.value)}
+                    placeholder="06 00 00 00 00"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                {form.bailleur_type==='professionnel' && (
+                  <FField label="SIREN / SIRET">
+                    <input style={inputStyle} value={form.bailleur_siren} onChange={e => up('bailleur_siren', e.target.value)}
+                      placeholder="ex : 123 456 789"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                )}
+              </>)}
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 2 : Garant ── */}
+        {step === 2 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Destinataire</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Le garant (caution solidaire)</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>La personne qui s'est portée garante du locataire.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              <FField label="Civilité">
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  {['M.','Mme'].map(c => (
+                    <FTypeBtn key={c} active={form.garant_civilite===c} onClick={() => up('garant_civilite', c)} label={c} />
+                  ))}
+                </div>
+              </FField>
+              <FField label="Nom complet" required>
+                <input style={inputStyle} value={form.garant_nom} onChange={e => up('garant_nom', e.target.value)}
+                  placeholder="ex : Jean Martin"
+                  onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+              </FField>
+              <FField label="Adresse" required>
+                <input style={inputStyle} value={form.garant_adresse} onChange={e => up('garant_adresse', e.target.value)}
+                  placeholder="ex : 5 avenue Victor Hugo"
+                  onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+              </FField>
+              <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '0.75rem' }}>
+                <FField label="Code postal" required>
+                  <input style={inputStyle} value={form.garant_cp} onChange={e => up('garant_cp', e.target.value)} placeholder="75001"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                <FField label="Ville" required>
+                  <input style={inputStyle} value={form.garant_ville} onChange={e => up('garant_ville', e.target.value)} placeholder="Paris"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 3 : Locataire & Bien ── */}
+        {step === 3 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Locataire & bien loué</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Le locataire défaillant</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Ces informations permettent d'identifier le locataire dans la lettre.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              <FField label="Civilité du locataire">
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  {['M.','Mme'].map(c => (
+                    <FTypeBtn key={c} active={form.locataire_civilite===c} onClick={() => up('locataire_civilite', c)} label={c} />
+                  ))}
+                </div>
+              </FField>
+              <FField label="Nom complet du locataire" required>
+                <input style={inputStyle} value={form.locataire_nom} onChange={e => up('locataire_nom', e.target.value)}
+                  placeholder="ex : Sophie Leroy"
+                  onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+              </FField>
+              <FField label="Adresse du logement loué" required>
+                <input style={inputStyle} value={form.bien_adresse} onChange={e => up('bien_adresse', e.target.value)}
+                  placeholder="ex : 3 rue des Lilas, 75020 Paris"
+                  onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+              </FField>
+              <FField label="Date de signature de l'acte de cautionnement" required>
+                <input style={inputStyle} type="date" value={form.caution_date} onChange={e => up('caution_date', e.target.value)}
+                  onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+              </FField>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 4 : Impayés ── */}
+        {step === 4 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Montants impayés</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Détail des impayés</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Renseignez chaque période de loyer impayé. Ces données formeront le tableau de la lettre.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {form.loyers.map((l, idx) => (
+                <div key={l.id} style={{ background: '#fff', border: `1.5px solid ${C.borderLight}`, borderRadius: '12px', padding: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <span style={{ fontWeight: 700, color: C.textDark, fontSize: '0.9rem' }}>Période {idx+1}</span>
+                    {form.loyers.length > 1 && (
+                      <button type="button" onClick={() => up('loyers', form.loyers.filter(x => x.id !== l.id))}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c0392b', fontSize: '0.8rem', fontFamily: F }}>Supprimer</button>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <FField label="Période concernée (ex : Janvier 2025)" required>
+                      <input style={inputStyle} value={l.periode} onChange={e => up('loyers', form.loyers.map(x => x.id===l.id ? {...x, periode: e.target.value} : x))}
+                        placeholder="ex : Janvier 2025"
+                        onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                    </FField>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                      <FField label="Loyer dû (€)" required>
+                        <input style={inputStyle} type="number" min="0" step="0.01" value={l.loyer} onChange={e => up('loyers', form.loyers.map(x => x.id===l.id ? {...x, loyer: e.target.value} : x))}
+                          placeholder="800"
+                          onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                      </FField>
+                      <FField label="Charges (€)">
+                        <input style={inputStyle} type="number" min="0" step="0.01" value={l.charges} onChange={e => up('loyers', form.loyers.map(x => x.id===l.id ? {...x, charges: e.target.value} : x))}
+                          placeholder="50"
+                          onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                      </FField>
+                      <FField label="Déjà réglé (€)">
+                        <input style={inputStyle} type="number" min="0" step="0.01" value={l.paye} onChange={e => up('loyers', form.loyers.map(x => x.id===l.id ? {...x, paye: e.target.value} : x))}
+                          placeholder="0"
+                          onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                      </FField>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button type="button" onClick={() => up('loyers', [...form.loyers, newMois()])}
+                style={{ border: `1.5px dashed ${C.borderLight}`, borderRadius: '12px', padding: '0.875rem', background: 'none', cursor: 'pointer', fontFamily: F, color: C.textMuted, fontSize: '0.875rem', fontWeight: 600 }}>
+                + Ajouter une période
+              </button>
+            </div>
+            {totalDu > 0 && (
+              <div style={{ marginTop: '1.5rem', background: 'rgba(201,169,110,0.08)', border: `1px solid rgba(201,169,110,0.3)`, borderRadius: '10px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 600, color: C.textDark, fontSize: '0.9rem' }}>Total impayé</span>
+                <span style={{ fontWeight: 700, color: C.accent, fontSize: '1.1rem' }}>{fmtEur(totalDu)} €</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── ÉTAPE 5 : Modalités ── */}
+        {step === 5 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Modalités</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Délai et paiement</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Précisez le délai accordé et le mode de règlement souhaité.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              <FField label="Délai accordé pour payer" required>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  {['8','15','30'].map(d => (
+                    <FTypeBtn key={d} active={form.delai_paiement===d} onClick={() => up('delai_paiement', d)} label={`${d} jours`} />
+                  ))}
+                </div>
+              </FField>
+              <FField label="Mode de paiement souhaité" required>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <FTypeBtn active={form.mode_paiement==='virement'} onClick={() => up('mode_paiement','virement')} label="Virement" />
+                  <FTypeBtn active={form.mode_paiement==='cheque'}   onClick={() => up('mode_paiement','cheque')}   label="Chèque" />
+                  <FTypeBtn active={form.mode_paiement==='autre'}    onClick={() => up('mode_paiement','autre')}    label="Autre" />
+                </div>
+              </FField>
+              {form.mode_paiement==='virement' && (<>
+                <FField label="Titulaire du compte" required>
+                  <input style={inputStyle} value={form.titulaire_compte} onChange={e => up('titulaire_compte', e.target.value)}
+                    placeholder="ex : Marie Dupont"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                <FField label="IBAN" required>
+                  <input style={inputStyle} value={form.iban} onChange={e => up('iban', e.target.value)}
+                    placeholder="FR76 3000 6000 0112 3456 7890 189"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+                <FField label="BIC">
+                  <input style={inputStyle} value={form.bic} onChange={e => up('bic', e.target.value)}
+                    placeholder="BNPAFRPP"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+              </>)}
+              {form.mode_paiement==='cheque' && (
+                <FField label="Chèque à l'ordre de">
+                  <input style={inputStyle} value={form.ordre_cheque} onChange={e => up('ordre_cheque', e.target.value)}
+                    placeholder="ex : Marie Dupont"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+              )}
+              {form.mode_paiement==='autre' && (
+                <FField label="Préciser le mode de paiement">
+                  <input style={inputStyle} value={form.preciser_mode} onChange={e => up('preciser_mode', e.target.value)}
+                    placeholder="ex : espèces en main propre contre reçu"
+                    onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                </FField>
+              )}
+              <div style={{ background: '#f7f7f5', borderRadius: '10px', padding: '1rem 1.25rem', marginTop: '0.5rem' }}>
+                <p style={{ fontWeight: 600, color: C.textDark, fontSize: '0.875rem', marginBottom: '0.75rem' }}>Contact pour règlement amiable (facultatif)</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <FField label="Téléphone">
+                    <input style={inputStyle} value={form.contact_tel} onChange={e => up('contact_tel', e.target.value)}
+                      placeholder="06 00 00 00 00"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                  <FField label="Email">
+                    <input style={inputStyle} type="email" value={form.contact_email} onChange={e => up('contact_email', e.target.value)}
+                      placeholder="votre@email.com"
+                      onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
+                  </FField>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 6 : Pièces jointes ── */}
+        {step === 6 && (
+          <div>
+            <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Documents</p>
+            <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>Pièces jointes</h1>
+            <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Joignez les documents qui appuient votre demande. Cette étape est facultative.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <FUploadZone label="Acte de cautionnement signé" hint="La caution signée par le garant"
+                files={uploadedFiles.caution} onAdd={f => addFiles('caution', f)} onRemove={i => removeFile('caution', i)} />
+              <FUploadZone label="Contrat de bail" hint="Le bail entre bailleur et locataire"
+                files={uploadedFiles.bail} onAdd={f => addFiles('bail', f)} onRemove={i => removeFile('bail', i)} />
+              <FUploadZone label="Décompte des loyers impayés" hint="Relevé ou état des impayés"
+                files={uploadedFiles.decompte} onAdd={f => addFiles('decompte', f)} onRemove={i => removeFile('decompte', i)} />
+              <FUploadZone label="Autres documents" hint="Tout justificatif complémentaire"
+                files={uploadedFiles.autres} onAdd={f => addFiles('autres', f)} onRemove={i => removeFile('autres', i)} />
+            </div>
+          </div>
+        )}
+
+        {/* ── ÉTAPE 7 : Aperçu & Envoi ── */}
+        {step === 7 && (() => {
+          const A4W = 794, A4H = 1123, GUTTER = 80, CONTENT_H = A4H - GUTTER * 2;
+          const scale = isMobile ? 0.42 : 0.68;
+          const fmtDateFr = d => d ? new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—';
+
+          const bodyJSX = (
+            <>
+              <p style={{ marginBottom:'1.25rem' }}>
+                Je me permets de vous contacter en votre qualité de caution solidaire de <strong>{form.locataire_civilite} {form.locataire_nom||'—'}</strong>, locataire du logement situé à l'adresse suivante :
+              </p>
+              <p style={{ marginBottom:'1.25rem', paddingLeft:'1rem', borderLeft:'3px solid #e0e0e0', fontStyle:'italic' }}>
+                {form.bien_adresse||'—'}
+              </p>
+              <p style={{ marginBottom:'1.25rem' }}>
+                Conformément à l'acte de cautionnement solidaire que vous avez signé le <strong>{fmtDateFr(form.caution_date)}</strong>, vous vous êtes engagé(e) à garantir le paiement des loyers, charges et accessoires dus par le locataire en cas de défaillance de sa part.
+              </p>
+              <p style={{ marginBottom:'1.25rem' }}>
+                Or, je vous informe que, malgré mes relances, le locataire n'a pas réglé les sommes qui lui incombent au titre de son contrat de bail.
+              </p>
+              <p style={{ marginBottom:'0.75rem' }}>
+                À ce jour, les sommes impayées s'établissent de la manière suivante :
+              </p>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'11.5px', marginBottom:'1.25rem' }}>
+                <thead>
+                  <tr style={{ background:'#f2f2f2' }}>
+                    {['Période','Loyer dû','Charges','Déjà réglé','Solde dû'].map(h => (
+                      <th key={h} style={{ textAlign:h==='Période'?'left':'right', padding:'5px 8px', border:'1px solid #d8d8d8', fontWeight:700 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {form.loyers.map(l => {
+                    const solde = Math.max(0,(parseFloat(l.loyer)||0)+(parseFloat(l.charges)||0)-(parseFloat(l.paye)||0));
+                    return (
+                      <tr key={l.id}>
+                        <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8' }}>{l.periode||'—'}</td>
+                        <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8', textAlign:'right' }}>{l.loyer ? fmtEur(parseFloat(l.loyer))+' €' : '—'}</td>
+                        <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8', textAlign:'right' }}>{l.charges && parseFloat(l.charges)>0 ? fmtEur(parseFloat(l.charges))+' €' : '—'}</td>
+                        <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8', textAlign:'right' }}>{l.paye && parseFloat(l.paye)>0 ? fmtEur(parseFloat(l.paye))+' €' : '—'}</td>
+                        <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8', textAlign:'right', fontWeight:700 }}>{fmtEur(solde)} €</td>
+                      </tr>
+                    );
+                  })}
+                  <tr style={{ background:'#f9f5ee' }}>
+                    <td colSpan={4} style={{ padding:'5px 8px', border:'1px solid #d8d8d8', fontWeight:700, textAlign:'right' }}>Total dû</td>
+                    <td style={{ padding:'5px 8px', border:'1px solid #d8d8d8', fontWeight:700, textAlign:'right' }}>{fmtEur(totalDu)} €</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p style={{ marginBottom:'1.25rem' }}>
+                Le montant total restant dû au titre de l'occupation du logement s'élève ainsi à <strong>{fmtEur(totalDu)} €</strong>.
+              </p>
+              <p style={{ marginBottom:'1.25rem' }}>
+                En votre qualité de caution solidaire et en l'absence de régularisation par le locataire, je vous mets donc formellement en demeure de procéder au règlement intégral de cette somme de <strong>{fmtEur(totalDu)} €</strong> dans un délai de <strong>{form.delai_paiement} jours</strong> à compter de la réception de ce courrier.
+              </p>
+              {form.mode_paiement==='virement' && (<>
+                <p style={{ marginBottom:'0.6rem' }}>Le paiement devra être effectué par virement bancaire aux coordonnées suivantes :</p>
+                {form.iban && (
+                  <table style={{ borderCollapse:'collapse', fontSize:'11.5px', marginBottom:'1.25rem' }}>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8', fontWeight:700, background:'#f2f2f2', whiteSpace:'nowrap' }}>Titulaire</td>
+                        <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8' }}>{form.titulaire_compte||'—'}</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8', fontWeight:700, background:'#f2f2f2' }}>IBAN</td>
+                        <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8', fontFamily:'monospace', letterSpacing:'0.04em' }}>{form.iban}</td>
+                      </tr>
+                      {form.bic && <tr>
+                        <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8', fontWeight:700, background:'#f2f2f2' }}>BIC</td>
+                        <td style={{ padding:'5px 10px', border:'1px solid #d8d8d8' }}>{form.bic}</td>
+                      </tr>}
+                    </tbody>
+                  </table>
+                )}
+              </>)}
+              {form.mode_paiement==='cheque' && form.ordre_cheque && (
+                <p style={{ marginBottom:'1.25rem' }}>Le paiement devra être effectué par chèque à l'ordre de : <strong>{form.ordre_cheque}</strong>.</p>
+              )}
+              {form.mode_paiement==='autre' && form.preciser_mode && (
+                <p style={{ marginBottom:'1.25rem' }}>Le paiement devra être effectué par : {form.preciser_mode}.</p>
+              )}
+              <p style={{ marginBottom:'1.25rem' }}>
+                À défaut de paiement intégral de votre part dans le délai imparti, je serai contraint(e) de transmettre ce dossier à un commissaire de justice pour la délivrance d'un commandement de payer. Si cette démarche n'aboutit pas, j'envisagerai la saisine de la juridiction compétente à votre encontre, conjointement avec le locataire, afin d'obtenir la condamnation solidaire au paiement des sommes dues.
+              </p>
+              {(form.contact_tel || form.contact_email) && (
+                <p style={{ marginBottom:'1.25rem' }}>
+                  Je reste toutefois à votre disposition si vous souhaitez me contacter{form.contact_tel ? ` au ${form.contact_tel}` : ''}{form.contact_tel && form.contact_email ? ' ou par email à ' : form.contact_email ? ' par email à ' : ''}{form.contact_email || ''} afin de trouver une issue amiable à cette situation.
+                </p>
+              )}
+              <p style={{ marginBottom:'0' }}>
+                Dans l'attente d'un prompt règlement, je vous prie d'agréer, {form.garant_civilite}, l'expression de mes salutations distinguées.
+              </p>
+            </>
+          );
+
+          const letterJSX = (
+            <>
+              <div style={{ marginBottom:'2.5rem' }}>
+                <div style={{ fontWeight:700, fontSize:'13.5px' }}>{form.bailleur_nom}</div>
+                <div>{form.bailleur_adresse}</div>
+                <div>{form.bailleur_cp} {form.bailleur_ville}</div>
+                {form.bailleur_email && <div style={{ fontSize:'11px', color:'#666' }}>{form.bailleur_email}</div>}
+                {form.bailleur_tel && <div style={{ fontSize:'11px', color:'#666' }}>{form.bailleur_tel}</div>}
+                {form.bailleur_siren && <div style={{ fontSize:'11px', color:'#666' }}>SIREN : {form.bailleur_siren}</div>}
+              </div>
+              <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:'2.5rem' }}>
+                <div style={{ textAlign:'left' }}>
+                  <div style={{ fontWeight:700, fontSize:'13.5px' }}>{form.garant_civilite} {form.garant_nom}</div>
+                  <div>{form.garant_adresse}</div>
+                  <div>{form.garant_cp} {form.garant_ville}</div>
+                </div>
+              </div>
+              <div style={{ textAlign:'right', color:'#555', marginBottom:'2rem' }}>{form.bailleur_ville||'Ville'}, le {today}</div>
+              <div style={{ marginBottom:'1.75rem', paddingBottom:'1rem', borderBottom:'1px solid #eee' }}>
+                <div><strong>Objet :</strong> Mise en demeure de payer — Appel en garantie pour loyers et/ou charges impayés (Locataire : {form.locataire_civilite} {form.locataire_nom||'—'})</div>
+              </div>
+              <div style={{ filter: showFullLetter ? 'none' : 'blur(4px)', userSelect: showFullLetter ? 'text' : 'none', WebkitUserSelect: showFullLetter ? 'text' : 'none', transition:'filter 0.3s' }}>
+                <div style={{ marginBottom:'1.5rem' }}>{form.garant_civilite},</div>
+                {bodyJSX}
+              </div>
+              <div style={{ marginTop:'1.5rem', display:'inline-block' }}>
+                {signature
+                  ? <img src={signature} alt="signature" style={{ display:'block', width:'170px', height:'58px', objectFit:'contain', objectPosition:'left bottom', marginBottom:'2px' }} />
+                  : <div style={{ height:'44px' }} />
+                }
+                <div style={{ fontWeight:700, fontSize:'13.5px' }}>{form.bailleur_nom}</div>
+              </div>
+            </>
+          );
+
+          const contentDivStyle = { width:A4W, padding:'0 80px', boxSizing:'border-box', fontFamily:"'DM Sans', sans-serif", fontSize:'13px', lineHeight:1.7, color:'#111', userSelect:'none', WebkitUserSelect:'none' };
+          const ends   = [...breakPoints, letterH > 0 ? letterH : CONTENT_H];
+          const slices = ends.map((end,i) => ({ start: i===0 ? 0 : ends[i-1], end })).filter(s => s.end > s.start);
+
+          return (
+            <div>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'0.5rem', flexWrap:'wrap', gap:'0.75rem' }}>
+                <h1 style={{ fontFamily:F, fontSize:'clamp(1.5rem,3vw,2rem)', fontWeight:700, color:C.textDark, margin:0 }}>Votre lettre est prête</h1>
+                <button type="button" onClick={() => setShowFullLetter(v => !v)} style={{ display:'flex', alignItems:'center', gap:'0.4rem', padding:'0.5rem 1rem', borderRadius:'8px', border:`1.5px solid ${showFullLetter ? C.accent : C.borderLight}`, background: showFullLetter ? 'rgba(201,169,110,0.1)' : '#fff', fontFamily:F, fontWeight:600, fontSize:'0.8rem', color: showFullLetter ? C.accent : C.textMuted, cursor:'pointer', transition:'all 0.2s' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  {showFullLetter ? 'Masquer le contenu' : 'Visualiser la lettre'}
+                </button>
+              </div>
+              <p style={{ color:C.textMid, fontSize:'0.95rem', marginBottom:'2rem' }}>Relisez votre mise en demeure avant de l'envoyer.</p>
+
+              {/* A4 preview */}
+              <>
+                <div ref={letterInnerRef} style={{ ...contentDivStyle, position:'fixed', top:'-9999px', left:'-9999px', visibility:'hidden', pointerEvents:'none' }}>
+                  {letterJSX}
+                </div>
+                <div style={{ background:'#d8d8d4', padding:'1.25rem 1rem', marginBottom:'2rem', borderRadius:'12px', display:'flex', flexDirection:'column', alignItems:'center', gap:'1rem' }}>
+                  {(slices.length ? slices : [{ start:0, end:CONTENT_H }]).map(({ start, end }, pageIdx) => {
+                    const sliceH = end - start;
+                    const numPages = (slices.length || 1);
+                    return (
+                      <div key={pageIdx} style={{ display:'flex', flexDirection:'column', alignItems:'center', width:'100%' }}>
+                        {numPages > 1 && <div style={{ fontSize:'0.68rem', color:'#888', marginBottom:'0.35rem', fontWeight:600, letterSpacing:'0.06em', textTransform:'uppercase' }}>Page {pageIdx+1} / {numPages}</div>}
+                        <div style={{ width:A4W*scale, height:A4H*scale, background:'#fff', boxShadow:'0 4px 32px rgba(0,0,0,0.22)', flexShrink:0, overflow:'hidden', position:'relative' }}>
+                          <div style={{ height:GUTTER*scale }} />
+                          <div style={{ height:sliceH*scale, overflow:'hidden', position:'relative' }}>
+                            <div style={{ ...contentDivStyle, position:'absolute', top:-(start*scale), left:0, transform:`scale(${scale})`, transformOrigin:'top left' }}>
+                              {letterJSX}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+
+              {/* Signature */}
+              <div style={{ marginBottom:'1.5rem' }}>
+                <p style={{ fontWeight:700, color:C.textDark, fontSize:'0.875rem', marginBottom:'0.75rem' }}>Votre signature <span style={{ fontWeight:400, color:'#999', fontSize:'0.78rem' }}>(optionnel)</span></p>
+                <SignaturePad onChange={setSignature} />
+                {signature && <p style={{ fontSize:'0.75rem', color:'#66a', marginTop:'0.4rem' }}>✓ Signature enregistrée</p>}
+              </div>
+
+              {/* Récap uploads */}
+              {(uploadedFiles.caution.length + uploadedFiles.bail.length + uploadedFiles.decompte.length + uploadedFiles.autres.length) > 0 && (
+                <div style={{ background:'#fff', border:`1.5px solid ${C.borderLight}`, borderRadius:'12px', padding:'1.5rem', marginBottom:'1.5rem' }}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'1rem' }}>
+                    <p style={{ fontWeight:700, color:C.textDark, fontSize:'0.95rem', margin:0 }}>Pièces jointes</p>
+                    <button type="button" onClick={() => setStep(6)} style={{ fontSize:'0.78rem', color:C.accent, background:'none', border:'none', cursor:'pointer', fontFamily:F, fontWeight:600, textDecoration:'underline' }}>Modifier</button>
+                  </div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
+                    {[{key:'caution',label:'Acte de cautionnement'},{key:'bail',label:'Contrat de bail'},{key:'decompte',label:'Décompte des impayés'},{key:'autres',label:'Autres documents'}]
+                      .filter(({key}) => uploadedFiles[key].length > 0)
+                      .map(({key,label}) => (
+                        <div key={key} style={{ display:'flex', alignItems:'center', gap:'0.6rem', fontSize:'0.85rem', color:C.textMid }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                          <span style={{ color:C.textDark, fontWeight:600 }}>{label}</span>
+                          <span style={{ color:'#999' }}>— {uploadedFiles[key].length} fichier{uploadedFiles[key].length>1?'s':''}</span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Récap */}
+              <div style={{ background:'rgba(201,169,110,0.07)', border:`1px solid rgba(201,169,110,0.25)`, borderRadius:'10px', padding:'1rem 1.25rem', marginBottom:'2rem', fontSize:'0.85rem', color:C.textMid }}>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem 2rem' }}>
+                  <span>📬 Envoi par <strong style={{ color:C.textDark }}>lettre recommandée AR</strong></span>
+                  <span>⏱ Délai accordé : <strong style={{ color:C.textDark }}>{form.delai_paiement} jours</strong></span>
+                  <span>💶 Total réclamé : <strong style={{ color:C.textDark }}>{fmtEur(totalDu)} €</strong></span>
+                </div>
+              </div>
+
+              {paymentError && <p style={{ color:'#c0392b', fontSize:'0.85rem', marginBottom:'1rem' }}>{paymentError}</p>}
+              <button onClick={async () => {
+                setPaymentLoading(true); setPaymentError('');
+                try {
+                  const res = await fetch('/api/create-checkout-session', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: form.bailleur_email, userId: user?.id || null,
+                      letterData: { expediteurType: form.bailleur_type, expediteurNom: form.bailleur_nom, expediteurAdresse: form.bailleur_adresse, expediteurCP: form.bailleur_cp, expediteurVille: form.bailleur_ville, destinataireType: 'particulier', destinataireNom: `${form.garant_civilite} ${form.garant_nom}`, destinataireAdresse: form.garant_adresse, destinataireCP: form.garant_cp, destinataireVille: form.garant_ville, litige: 'loyer', montant: totalDu.toFixed(2), delai: form.delai_paiement, description: `Appel en garantie — Locataire : ${form.locataire_nom}` }
+                    }),
+                  });
+                  const { url, error } = await res.json();
+                  if (error) throw new Error(error);
+                  window.location.href = url;
+                } catch (e) { setPaymentError(e.message); }
+                finally { setPaymentLoading(false); }
+              }} style={{ width:'100%', background: paymentLoading ? '#999' : C.accent, border:'none', padding:'1.1rem 2rem', borderRadius:'10px', fontFamily:F, fontWeight:700, fontSize:'1.05rem', color:C.textDark, cursor: paymentLoading ? 'not-allowed' : 'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'0.6rem', boxShadow:'0 4px 24px rgba(201,169,110,0.3)', transition:'all 0.2s' }}>
+                {paymentLoading ? 'Redirection vers le paiement…' : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>Envoyer ma lettre</>}
+              </button>
+              <p style={{ textAlign:'center', fontSize:'0.78rem', color:C.textMuted, marginTop:'0.75rem' }}>
+                Paiement sécurisé · Envoi en LRAR via La Poste · Accusé de réception inclus
+              </p>
+            </div>
+          );
+        })()}
+
+        {/* Navigation */}
+        {step < 7 && (
+          <div style={{ display:'flex', justifyContent:'flex-end', marginTop:'2.5rem' }}>
+            <button onClick={() => { if (canNext()) setStep(s => s+1); }} style={{ background: canNext() ? C.accent : '#E0E0DC', border:`2px solid ${canNext() ? C.accent : '#E0E0DC'}`, padding:'0.875rem 2rem', borderRadius:'8px', fontFamily:F, fontWeight:700, fontSize:'0.9rem', color: canNext() ? C.textDark : '#999', cursor: canNext() ? 'pointer' : 'not-allowed', transition:'all 0.2s' }}
+              onMouseEnter={e => { if (canNext()) { e.currentTarget.style.background=C.accentHover; e.currentTarget.style.borderColor=C.accentHover; } }}
+              onMouseLeave={e => { if (canNext()) { e.currentTarget.style.background=C.accent; e.currentTarget.style.borderColor=C.accent; } }}>
+              {step === 6 ? 'Aperçu de ma lettre →' : 'Continuer →'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 /* ── Form multi-étapes ──────────────────────────────────────── */
 const FormPage = ({ onBack, user }) => {
   const isMobile = useIsMobile();
   const [step, setStep] = useState(1);
+  const [showFactureForm, setShowFactureForm] = useState(false);
+  const [showLoyerForm,   setShowLoyerForm]   = useState(false);
+  const [showGarantForm,  setShowGarantForm]  = useState(false);
+  const [loyerDestinataire, setLoyerDestinataire] = useState('');
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError]     = useState('');
   const [data, setData] = useState({
@@ -949,12 +3298,16 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
   };
 
   const canNext = () => {
-    if (step === 1) return !!data.litige;
+    if (step === 1) return !!(data.litige && (data.litige !== 'loyer' || loyerDestinataire));
     if (step === 2) return data.expediteurType && data.expediteurNom && data.expediteurAdresse && data.expediteurCP && data.expediteurVille;
     if (step === 3) return data.destinataireType && data.destinataireNom && data.destinataireAdresse && data.destinataireCP && data.destinataireVille;
     if (step === 4) return !!(data.email && data.email.includes('@'));
     return true;
   };
+
+  if (showFactureForm) return <FactureImpayeeForm onBack={() => setShowFactureForm(false)} user={user} />;
+  if (showLoyerForm)   return <LoyerImpayeForm   onBack={() => setShowLoyerForm(false)}   user={user} />;
+  if (showGarantForm)  return <GarantImpayeForm  onBack={() => setShowGarantForm(false)}  user={user} />;
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: F }}>
@@ -990,7 +3343,7 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
               {LITIGES.map(l => {
                 const active = data.litige === l.id;
                 return (
-                  <button key={l.id} type="button" onClick={() => update('litige', l.id)} style={{
+                  <button key={l.id} type="button" onClick={() => { update('litige', l.id); if (l.id !== 'loyer') setLoyerDestinataire(''); }} style={{
                     padding: '1.25rem 1.25rem', borderRadius: '12px', cursor: 'pointer', textAlign: 'left',
                     border: `2px solid ${active ? C.accent : C.borderLight}`,
                     background: active ? 'rgba(201,169,110,0.07)' : '#fff',
@@ -1003,6 +3356,31 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
                 );
               })}
             </div>
+            {data.litige === 'loyer' && (
+              <div style={{ marginTop: '1.5rem', background: '#f7f7f5', borderRadius: '12px', padding: '1.25rem' }}>
+                <p style={{ fontWeight: 700, color: C.textDark, fontSize: '0.875rem', marginBottom: '1rem' }}>À qui adresser la lettre ?</p>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
+                  {[
+                    { id: 'locataire', label: 'Au locataire', desc: 'Mise en demeure directement adressée au locataire défaillant' },
+                    { id: 'garant',    label: 'Au garant (caution solidaire)', desc: 'Appel en garantie à la personne qui s\'est portée caution' },
+                  ].map(opt => {
+                    const active = loyerDestinataire === opt.id;
+                    return (
+                      <button key={opt.id} type="button" onClick={() => setLoyerDestinataire(opt.id)} style={{
+                        padding: '1rem', borderRadius: '10px', cursor: 'pointer', textAlign: 'left',
+                        border: `2px solid ${active ? C.accent : C.borderLight}`,
+                        background: active ? 'rgba(201,169,110,0.07)' : '#fff',
+                        fontFamily: F, transition: 'all 0.15s',
+                        boxShadow: active ? `0 0 0 3px rgba(201,169,110,0.15)` : 'none',
+                      }}>
+                        <div style={{ fontWeight: 700, color: active ? C.accent : C.textDark, fontSize: '0.9rem', marginBottom: '0.25rem' }}>{opt.label}</div>
+                        <div style={{ fontSize: '0.78rem', color: C.textMuted, lineHeight: 1.4 }}>{opt.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1326,7 +3704,13 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
             </button>
           )}
           {step < 4 && (
-            <button onClick={() => { if (canNext()) setStep(s => s + 1); }} style={{
+            <button onClick={() => {
+              if (!canNext()) return;
+              if (step === 1 && data.litige === 'facture') { setShowFactureForm(true); return; }
+              if (step === 1 && data.litige === 'loyer' && loyerDestinataire === 'garant')    { setShowGarantForm(true);  return; }
+              if (step === 1 && data.litige === 'loyer' && loyerDestinataire === 'locataire') { setShowLoyerForm(true);   return; }
+              setStep(s => s + 1);
+            }} style={{
               background: canNext() ? C.accent : '#E0E0DC', border: `2px solid ${canNext() ? C.accent : '#E0E0DC'}`,
               padding: '0.875rem 2rem', borderRadius: '8px', fontFamily: F, fontWeight: 700,
               fontSize: '0.9rem', color: canNext() ? C.textDark : '#999',
