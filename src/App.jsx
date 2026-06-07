@@ -1817,9 +1817,9 @@ const FactureImpayeeForm = ({ onBack, user }) => {
             {/* Récap */}
             <div style={{ background: 'rgba(201,169,110,0.07)', border: `1px solid rgba(201,169,110,0.25)`, borderRadius: '10px', padding: '1rem 1.25rem', marginBottom: '2rem', fontSize: '0.85rem', color: C.textMid }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 2rem' }}>
-                <span>📬 Envoi par <strong style={{ color: C.textDark }}>lettre recommandée AR</strong></span>
-                <span>⏱ Délai accordé : <strong style={{ color: C.textDark }}>{form.delai_paiement} jours</strong></span>
-                <span>💶 Montant réclamé : <strong style={{ color: C.textDark }}>{fmtEur(totalDu)} €</strong></span>
+                <span>Envoi par <strong style={{ color: C.textDark }}>lettre recommandée AR</strong></span>
+                <span>Délai accordé : <strong style={{ color: C.textDark }}>{form.delai_paiement} jours</strong></span>
+                <span>Montant réclamé : <strong style={{ color: C.textDark }}>{fmtEur(totalDu)} €</strong></span>
               </div>
             </div>
 
@@ -2523,9 +2523,9 @@ const LoyerImpayeForm = ({ onBack, user }) => {
               {/* Récap */}
               <div style={{ background:'rgba(201,169,110,0.07)', border:`1px solid rgba(201,169,110,0.25)`, borderRadius:'10px', padding:'1rem 1.25rem', marginBottom:'2rem', fontSize:'0.85rem', color:C.textMid }}>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem 2rem' }}>
-                  <span>📬 Envoi par <strong style={{ color:C.textDark }}>lettre recommandée AR</strong></span>
-                  <span>⏱ Délai accordé : <strong style={{ color:C.textDark }}>{form.delai_paiement} jours</strong></span>
-                  <span>💶 Total réclamé : <strong style={{ color:C.textDark }}>{fmtEur(totalDu)} €</strong></span>
+                  <span>Envoi par <strong style={{ color:C.textDark }}>lettre recommandée AR</strong></span>
+                  <span>Délai accordé : <strong style={{ color:C.textDark }}>{form.delai_paiement} jours</strong></span>
+                  <span>Total réclamé : <strong style={{ color:C.textDark }}>{fmtEur(totalDu)} €</strong></span>
                 </div>
               </div>
 
@@ -3153,9 +3153,9 @@ const GarantImpayeForm = ({ onBack, user }) => {
               {/* Récap */}
               <div style={{ background:'rgba(201,169,110,0.07)', border:`1px solid rgba(201,169,110,0.25)`, borderRadius:'10px', padding:'1rem 1.25rem', marginBottom:'2rem', fontSize:'0.85rem', color:C.textMid }}>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem 2rem' }}>
-                  <span>📬 Envoi par <strong style={{ color:C.textDark }}>lettre recommandée AR</strong></span>
-                  <span>⏱ Délai accordé : <strong style={{ color:C.textDark }}>{form.delai_paiement} jours</strong></span>
-                  <span>💶 Total réclamé : <strong style={{ color:C.textDark }}>{fmtEur(totalDu)} €</strong></span>
+                  <span>Envoi par <strong style={{ color:C.textDark }}>lettre recommandée AR</strong></span>
+                  <span>Délai accordé : <strong style={{ color:C.textDark }}>{form.delai_paiement} jours</strong></span>
+                  <span>Total réclamé : <strong style={{ color:C.textDark }}>{fmtEur(totalDu)} €</strong></span>
                 </div>
               </div>
 
@@ -3669,9 +3669,9 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
             {/* Récap infos */}
             <div style={{ background: 'rgba(201,169,110,0.07)', border: `1px solid rgba(201,169,110,0.25)`, borderRadius: '10px', padding: '1rem 1.25rem', marginBottom: '2rem', fontSize: '0.85rem', color: C.textMid }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 2rem' }}>
-                <span>📬 Envoi par <strong style={{ color: C.textDark }}>lettre recommandée AR</strong></span>
-                <span>⏱ Délai accordé : <strong style={{ color: C.textDark }}>{data.delai} jours</strong></span>
-                {data.montant && <span>💶 Montant : <strong style={{ color: C.textDark }}>{Number(data.montant).toLocaleString('fr-FR')} €</strong></span>}
+                <span>Envoi par <strong style={{ color: C.textDark }}>lettre recommandée AR</strong></span>
+                <span>Délai accordé : <strong style={{ color: C.textDark }}>{data.delai} jours</strong></span>
+                {data.montant && <span>Montant : <strong style={{ color: C.textDark }}>{Number(data.montant).toLocaleString('fr-FR')} €</strong></span>}
               </div>
             </div>
 
@@ -3864,7 +3864,7 @@ const ContactPage = ({ onBack }) => {
                   {loading ? 'Envoi en cours…' : <>Envoyer le message <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg></>}
                 </button>
                 <p style={{ textAlign: 'center', fontSize: '0.78rem', color: C.textMuted, marginTop: '0.25rem' }}>
-                  🔒 Vos données sont protégées et ne seront jamais partagées.
+                  Vos données sont protégées et ne seront jamais partagées.
                 </p>
               </form>
             </div>
