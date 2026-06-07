@@ -3205,7 +3205,8 @@ const FormPage = ({ onBack, user }) => {
   const [step, setStep] = useState(1);
   const [showFactureForm, setShowFactureForm] = useState(false);
   const [showLoyerForm,   setShowLoyerForm]   = useState(false);
-  const [showGarantForm,  setShowGarantForm]  = useState(false);
+  const [showGarantForm,    setShowGarantForm]    = useState(false);
+  const [showLoyerChoice,   setShowLoyerChoice]   = useState(false);
   const [loyerDestinataire, setLoyerDestinataire] = useState('');
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError]     = useState('');
@@ -3298,7 +3299,7 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
   };
 
   const canNext = () => {
-    if (step === 1) return !!(data.litige && (data.litige !== 'loyer' || loyerDestinataire));
+    if (step === 1) return !!data.litige;
     if (step === 2) return data.expediteurType && data.expediteurNom && data.expediteurAdresse && data.expediteurCP && data.expediteurVille;
     if (step === 3) return data.destinataireType && data.destinataireNom && data.destinataireAdresse && data.destinataireCP && data.destinataireVille;
     if (step === 4) return !!(data.email && data.email.includes('@'));
@@ -3308,6 +3309,59 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
   if (showFactureForm) return <FactureImpayeeForm onBack={() => setShowFactureForm(false)} user={user} />;
   if (showLoyerForm)   return <LoyerImpayeForm   onBack={() => setShowLoyerForm(false)}   user={user} />;
   if (showGarantForm)  return <GarantImpayeForm  onBack={() => setShowGarantForm(false)}  user={user} />;
+
+  if (showLoyerChoice) return (
+    <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: F }}>
+      <div style={{ background: '#fff', borderBottom: `1px solid ${C.borderLight}`, padding: '1rem 0' }}>
+        <div style={{ maxWidth: '680px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button onClick={() => { setShowLoyerChoice(false); setLoyerDestinataire(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', color: C.textMuted, fontFamily: F, fontSize: '0.875rem' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+            Précédent
+          </button>
+          <span style={{ fontSize: '0.8rem', color: C.textMuted, fontWeight: 600 }}>Loyer impayé</span>
+        </div>
+      </div>
+      <div style={{ maxWidth: '680px', margin: '0 auto', padding: isMobile ? '2rem 1.25rem' : '3rem 1.5rem' }}>
+        <p style={{ color: C.accent, fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Loyer impayé</p>
+        <h1 style={{ fontFamily: F, fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 700, color: C.textDark, marginBottom: '0.5rem' }}>À qui adresser la lettre ?</h1>
+        <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Choisissez le destinataire de votre mise en demeure.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.875rem', marginBottom: '2.5rem' }}>
+          {[
+            { id: 'locataire', label: 'Au locataire', desc: 'Mise en demeure directement adressée au locataire en défaut de paiement', icon: '🏠' },
+            { id: 'garant',    label: 'Au garant (caution solidaire)', desc: 'Appel en garantie adressé à la personne qui s\'est portée caution pour le locataire', icon: '🤝' },
+          ].map(opt => {
+            const active = loyerDestinataire === opt.id;
+            return (
+              <button key={opt.id} type="button" onClick={() => setLoyerDestinataire(opt.id)} style={{
+                padding: '1.5rem 1.25rem', borderRadius: '12px', cursor: 'pointer', textAlign: 'left',
+                border: `2px solid ${active ? C.accent : C.borderLight}`,
+                background: active ? 'rgba(201,169,110,0.07)' : '#fff',
+                fontFamily: F, transition: 'all 0.15s',
+                boxShadow: active ? `0 0 0 3px rgba(201,169,110,0.15)` : 'none',
+              }}>
+                <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{opt.icon}</div>
+                <div style={{ fontWeight: 700, color: active ? C.accent : C.textDark, fontSize: '0.95rem', marginBottom: '0.3rem' }}>{opt.label}</div>
+                <div style={{ fontSize: '0.8rem', color: C.textMuted, lineHeight: 1.4 }}>{opt.desc}</div>
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button disabled={!loyerDestinataire} onClick={() => {
+            if (loyerDestinataire === 'garant')    { setShowGarantForm(true);  setShowLoyerChoice(false); }
+            if (loyerDestinataire === 'locataire') { setShowLoyerForm(true);   setShowLoyerChoice(false); }
+          }} style={{
+            background: loyerDestinataire ? C.accent : '#E0E0DC', border: `2px solid ${loyerDestinataire ? C.accent : '#E0E0DC'}`,
+            padding: '0.875rem 2rem', borderRadius: '8px', fontFamily: F, fontWeight: 700,
+            fontSize: '0.9rem', color: loyerDestinataire ? C.textDark : '#999',
+            cursor: loyerDestinataire ? 'pointer' : 'not-allowed', transition: 'all 0.2s',
+          }}>
+            Continuer →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: F }}>
@@ -3356,31 +3410,6 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
                 );
               })}
             </div>
-            {data.litige === 'loyer' && (
-              <div style={{ marginTop: '1.5rem', background: '#f7f7f5', borderRadius: '12px', padding: '1.25rem' }}>
-                <p style={{ fontWeight: 700, color: C.textDark, fontSize: '0.875rem', marginBottom: '1rem' }}>À qui adresser la lettre ?</p>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.75rem' }}>
-                  {[
-                    { id: 'locataire', label: 'Au locataire', desc: 'Mise en demeure directement adressée au locataire défaillant' },
-                    { id: 'garant',    label: 'Au garant (caution solidaire)', desc: 'Appel en garantie à la personne qui s\'est portée caution' },
-                  ].map(opt => {
-                    const active = loyerDestinataire === opt.id;
-                    return (
-                      <button key={opt.id} type="button" onClick={() => setLoyerDestinataire(opt.id)} style={{
-                        padding: '1rem', borderRadius: '10px', cursor: 'pointer', textAlign: 'left',
-                        border: `2px solid ${active ? C.accent : C.borderLight}`,
-                        background: active ? 'rgba(201,169,110,0.07)' : '#fff',
-                        fontFamily: F, transition: 'all 0.15s',
-                        boxShadow: active ? `0 0 0 3px rgba(201,169,110,0.15)` : 'none',
-                      }}>
-                        <div style={{ fontWeight: 700, color: active ? C.accent : C.textDark, fontSize: '0.9rem', marginBottom: '0.25rem' }}>{opt.label}</div>
-                        <div style={{ fontSize: '0.78rem', color: C.textMuted, lineHeight: 1.4 }}>{opt.desc}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -3707,8 +3736,7 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
             <button onClick={() => {
               if (!canNext()) return;
               if (step === 1 && data.litige === 'facture') { setShowFactureForm(true); return; }
-              if (step === 1 && data.litige === 'loyer' && loyerDestinataire === 'garant')    { setShowGarantForm(true);  return; }
-              if (step === 1 && data.litige === 'loyer' && loyerDestinataire === 'locataire') { setShowLoyerForm(true);   return; }
+              if (step === 1 && data.litige === 'loyer')   { setShowLoyerChoice(true); return; }
               setStep(s => s + 1);
             }} style={{
               background: canNext() ? C.accent : '#E0E0DC', border: `2px solid ${canNext() ? C.accent : '#E0E0DC'}`,
