@@ -3327,8 +3327,8 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
         <p style={{ color: C.textMid, fontSize: '0.95rem', marginBottom: '2rem' }}>Choisissez le destinataire de votre mise en demeure.</p>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.875rem', marginBottom: '2.5rem' }}>
           {[
-            { id: 'locataire', label: 'Au locataire', desc: 'Mise en demeure directement adressée au locataire en défaut de paiement', icon: '🏠' },
-            { id: 'garant',    label: 'Au garant (caution solidaire)', desc: 'Appel en garantie adressé à la personne qui s\'est portée caution pour le locataire', icon: '🤝' },
+            { id: 'locataire', label: 'Au locataire', desc: 'Mise en demeure directement adressée au locataire en défaut de paiement' },
+            { id: 'garant',    label: 'Au garant (caution solidaire)', desc: 'Appel en garantie adressé à la personne qui s\'est portée caution pour le locataire' },
           ].map(opt => {
             const active = loyerDestinataire === opt.id;
             return (
@@ -3339,7 +3339,6 @@ La présente lettre, envoyée en recommandé avec accusé de réception, constit
                 fontFamily: F, transition: 'all 0.15s',
                 boxShadow: active ? `0 0 0 3px rgba(201,169,110,0.15)` : 'none',
               }}>
-                <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{opt.icon}</div>
                 <div style={{ fontWeight: 700, color: active ? C.accent : C.textDark, fontSize: '0.95rem', marginBottom: '0.3rem' }}>{opt.label}</div>
                 <div style={{ fontSize: '0.8rem', color: C.textMuted, lineHeight: 1.4 }}>{opt.desc}</div>
               </button>
