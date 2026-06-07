@@ -28,6 +28,12 @@ const C = {
 
 const MAX_W = '1100px';
 
+/* ── Helpers accord de genre ─────────────────────────────────── */
+// civ = 'M.' | 'Mme' | ''   type = 'particulier' | 'professionnel'
+const gA = (civ, type, masc, fem) => (type === 'professionnel' ? masc : civ === 'Mme' ? fem : masc);
+const gSalut  = (civ, type) => type === 'professionnel' ? 'Madame, Monsieur,' : civ === 'Mme' ? 'Madame,' : 'Monsieur,';
+const gAgree  = (civ, type) => type === 'professionnel' ? 'Madame, Monsieur' : civ === 'Mme' ? 'Madame' : 'Monsieur';
+
 /* ── Hooks ──────────────────────────────────────────────────── */
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
@@ -1052,9 +1058,9 @@ const FactureImpayeeForm = ({ onBack, user }) => {
   });
 
   const [form, setForm] = useState({
-    creancier_type: '', creancier_nom: '', creancier_adresse: '', creancier_cp: '', creancier_ville: '',
+    creancier_type: '', creancier_civilite: '', creancier_nom: '', creancier_adresse: '', creancier_cp: '', creancier_ville: '',
     creancier_siren: '', signataire_nom: '', signataire_fonction: '', email: user?.email || '',
-    debiteur_type: '', debiteur_nom: '', debiteur_adresse: '', debiteur_cp: '', debiteur_ville: '',
+    debiteur_type: '', debiteur_civilite: '', debiteur_nom: '', debiteur_adresse: '', debiteur_cp: '', debiteur_ville: '',
     debiteur_siren: '', debiteur_contact: '',
     factures: [newFacture()],
     relances: false, nb_relances: '', date_derniere_relance: '', mode_relance: '',
@@ -1132,7 +1138,7 @@ const FactureImpayeeForm = ({ onBack, user }) => {
       amiableText = `\n\nNous demeurons disponibles pour trouver une solution amiable à ce litige, notamment par ${mode}.`;
     }
 
-    return `Nous vous mettons formellement en demeure de régler, dans un délai de ${form.delai_paiement} jours à compter de la réception du présent courrier, les factures ci-après détaillées :\n\n${facturesLines}\n\nMontant total dû : ${fmtEur(totalDu)} € TTC${relancesText}${reclamsText}${paymentText}${amiableText}\n\nConformément aux articles 1344 et suivants du Code civil, passé ce délai sans règlement intégral des sommes dues, je me verrai contraint(e) de saisir les juridictions compétentes afin de recouvrer les sommes dues, les frais de procédure et intérêts moratoires restant à votre charge.\n\nLa présente mise en demeure est adressée en lettre recommandée avec accusé de réception, conformément à l'article 1344 du Code civil.`;
+    return `Nous vous mettons formellement en demeure de régler, dans un délai de ${form.delai_paiement} jours à compter de la réception du présent courrier, les factures ci-après détaillées :\n\n${facturesLines}\n\nMontant total dû : ${fmtEur(totalDu)} € TTC${relancesText}${reclamsText}${paymentText}${amiableText}\n\nConformément aux articles 1344 et suivants du Code civil, passé ce délai sans règlement intégral des sommes dues, je me verrai ${gA(form.creancier_civilite, form.creancier_type, 'contraint', 'contrainte')} de saisir les juridictions compétentes afin de recouvrer les sommes dues, les frais de procédure et intérêts moratoires restant à votre charge.\n\nLa présente mise en demeure est adressée en lettre recommandée avec accusé de réception, conformément à l'article 1344 du Code civil.`;
   };
 
   return (
@@ -1167,6 +1173,13 @@ const FactureImpayeeForm = ({ onBack, user }) => {
                 <FTypeBtn active={form.creancier_type === 'professionnel'} onClick={() => up('creancier_type', 'professionnel')} label="Professionnel" sub="Une entreprise" />
               </div>
               {form.creancier_type && (<>
+                {form.creancier_type === 'particulier' && (
+                  <FField label="Civilité">
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      {['M.','Mme'].map(c => <FTypeBtn key={c} active={form.creancier_civilite===c} onClick={() => up('creancier_civilite',c)} label={c} />)}
+                    </div>
+                  </FField>
+                )}
                 <FField label={form.creancier_type === 'professionnel' ? "Nom de l'entreprise" : "Votre nom complet"}>
                   <input style={inputStyle} value={form.creancier_nom} onChange={e => up('creancier_nom', e.target.value)}
                     placeholder={form.creancier_type === 'professionnel' ? 'ex : Dupont Consulting SARL' : 'ex : Marie Dupont'}
@@ -1220,6 +1233,13 @@ const FactureImpayeeForm = ({ onBack, user }) => {
                 <FTypeBtn active={form.debiteur_type === 'professionnel'} onClick={() => up('debiteur_type', 'professionnel')} label="Un professionnel" sub="Une entreprise" />
               </div>
               {form.debiteur_type && (<>
+                {form.debiteur_type === 'particulier' && (
+                  <FField label="Civilité">
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      {['M.','Mme'].map(c => <FTypeBtn key={c} active={form.debiteur_civilite===c} onClick={() => up('debiteur_civilite',c)} label={c} />)}
+                    </div>
+                  </FField>
+                )}
                 <FField label={form.debiteur_type === 'professionnel' ? "Nom de l'entreprise" : "Nom complet"}>
                   <input style={inputStyle} value={form.debiteur_nom} onChange={e => up('debiteur_nom', e.target.value)}
                     placeholder={form.debiteur_type === 'professionnel' ? 'ex : Client SARL' : 'ex : Jean Martin'}
@@ -1610,9 +1630,9 @@ const FactureImpayeeForm = ({ onBack, user }) => {
               /* ── Contenu lettre ── */
               const bodyJSX = (
                 <>
-                  <div style={{ marginBottom: '1.5rem' }}>Madame, Monsieur,</div>
+                  <div style={{ marginBottom: '1.5rem' }}>{gSalut(form.debiteur_civilite, form.debiteur_type)}</div>
                   <p style={{ marginBottom: '1.25rem' }}>
-                    Nous vous mettons formellement en demeure de régler, dans un délai de <strong>{form.delai_paiement} jours</strong> à compter de la réception du présent courrier, les factures ci-après détaillées :
+                    {form.creancier_type === 'particulier' ? 'Je vous mets' : 'Nous vous mettons'} formellement en demeure de régler, dans un délai de <strong>{form.delai_paiement} jours</strong> à compter de la réception du présent courrier, les factures ci-après détaillées :
                   </p>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', marginBottom: '1.25rem' }}>
                     <thead>
@@ -1681,7 +1701,7 @@ const FactureImpayeeForm = ({ onBack, user }) => {
                       Nous demeurons disponibles pour trouver une solution amiable à ce litige, notamment par {{ email: "échange d'emails", telephone: 'entretien téléphonique', courrier: 'correspondance postale' }[form.contact_amiable_modal] || 'contact direct'}.
                     </p>
                   )}
-                  <p style={{ marginBottom: '1.25rem' }}>Conformément aux articles 1344 et suivants du Code civil, passé ce délai sans règlement intégral des sommes dues, je me verrai contraint(e) de saisir les juridictions compétentes afin de recouvrer les sommes dues, les frais de procédure et intérêts moratoires restant à votre charge.</p>
+                  <p style={{ marginBottom: '1.25rem' }}>Conformément aux articles 1344 et suivants du Code civil, passé ce délai sans règlement intégral des sommes dues, {form.creancier_type === 'particulier' ? `je me verrai ${gA(form.creancier_civilite, form.creancier_type, 'contraint', 'contrainte')}` : 'nous nous verrons contraints'} de saisir les juridictions compétentes afin de recouvrer les sommes dues, les frais de procédure et intérêts moratoires restant à votre charge.</p>
                   <p style={{ marginBottom: '0' }}>La présente mise en demeure est adressée en lettre recommandée avec accusé de réception, conformément à l'article 1344 du Code civil.</p>
                 </>
               );
@@ -1715,7 +1735,7 @@ const FactureImpayeeForm = ({ onBack, user }) => {
                   <div style={{ filter: showFullLetter ? 'none' : 'blur(4px)', userSelect: showFullLetter ? 'text' : 'none', WebkitUserSelect: showFullLetter ? 'text' : 'none', transition: 'filter 0.3s' }}>
                     {bodyJSX}
                     <div style={{ marginTop: '2rem' }}>
-                      Veuillez agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+                      Veuillez agréer, {gAgree(form.debiteur_civilite, form.debiteur_type)}, l'expression de mes salutations distinguées.
                     </div>
                   </div>
                   {/* Signature + Nom — toujours visible (hors blur) */}
@@ -1933,10 +1953,10 @@ const LoyerImpayeForm = ({ onBack, user }) => {
   const newMois = () => ({ id: Date.now() + Math.random(), periode: '', loyer: '', charges: '0', paye: '0' });
 
   const [form, setForm] = useState({
-    bailleur_type: '', bailleur_nom: '', bailleur_adresse: '', bailleur_cp: '', bailleur_ville: '',
+    bailleur_type: '', bailleur_civilite: '', bailleur_nom: '', bailleur_adresse: '', bailleur_cp: '', bailleur_ville: '',
     bailleur_email: user?.email || '', bailleur_tel: '', bailleur_siren: '',
     signataire_nom: '', signataire_fonction: '',
-    locataire_type: '', locataire_nom: '', locataire_adresse: '', locataire_cp: '', locataire_ville: '',
+    locataire_type: '', locataire_civilite: '', locataire_nom: '', locataire_adresse: '', locataire_cp: '', locataire_ville: '',
     bien_adresse: '', bien_cp: '', bien_ville: '', bail_date: '', bien_type: 'logement',
     loyers: [newMois()],
     relances: false, nb_relances: '', date_derniere_relance: '',
@@ -2004,6 +2024,13 @@ const LoyerImpayeForm = ({ onBack, user }) => {
                 <FTypeBtn active={form.bailleur_type==='professionnel'} onClick={() => up('bailleur_type','professionnel')} label="Professionnel" sub="SCI, agence, société…" />
               </div>
               {form.bailleur_type && (<>
+                {form.bailleur_type==='particulier' && (
+                  <FField label="Civilité">
+                    <div style={{ display:'flex', gap:'0.75rem' }}>
+                      {['M.','Mme'].map(c => <FTypeBtn key={c} active={form.bailleur_civilite===c} onClick={() => up('bailleur_civilite',c)} label={c} />)}
+                    </div>
+                  </FField>
+                )}
                 <FField label={form.bailleur_type==='professionnel' ? "Raison sociale" : "Votre nom complet"}>
                   <input style={inputStyle} value={form.bailleur_nom} onChange={e => up('bailleur_nom', e.target.value)}
                     placeholder={form.bailleur_type==='professionnel' ? 'ex : SCI Dupont Immobilier' : 'ex : Marie Dupont'}
@@ -2060,6 +2087,13 @@ const LoyerImpayeForm = ({ onBack, user }) => {
                 <FTypeBtn active={form.locataire_type==='professionnel'} onClick={() => up('locataire_type','professionnel')} label="Professionnel" sub="Société, association…" />
               </div>
               {form.locataire_type && (<>
+                {form.locataire_type==='particulier' && (
+                  <FField label="Civilité">
+                    <div style={{ display:'flex', gap:'0.75rem' }}>
+                      {['M.','Mme'].map(c => <FTypeBtn key={c} active={form.locataire_civilite===c} onClick={() => up('locataire_civilite',c)} label={c} />)}
+                    </div>
+                  </FField>
+                )}
                 <FField label={form.locataire_type==='professionnel' ? "Raison sociale" : "Nom complet du locataire"}>
                   <input style={inputStyle} value={form.locataire_nom} onChange={e => up('locataire_nom', e.target.value)} placeholder="ex : Jean Martin"
                     onFocus={e => e.target.style.borderColor=C.accent} onBlur={e => e.target.style.borderColor=C.borderLight} />
@@ -2327,7 +2361,7 @@ const LoyerImpayeForm = ({ onBack, user }) => {
                 Je me permets de vous contacter concernant le contrat de location conclu le <strong>{bailDateFmt}</strong>, portant sur le {form.bien_type==='logement' ? 'logement' : form.bien_type==='local' ? 'local commercial' : 'bien'} situé à l'adresse suivante : <strong>{form.bien_adresse}{form.bien_cp ? `, ${form.bien_cp}` : ''}{form.bien_ville ? ` ${form.bien_ville}` : ''}</strong>.
               </p>
               <p style={{ marginBottom:'1.25rem' }}>
-                Aux termes de ce contrat de location, vous êtes tenu(e) de régler le loyer et les charges locatives aux échéances convenues. Or, sauf erreur ou omission de ma part, plusieurs sommes demeurent impayées à ce jour au titre de votre occupation du logement.
+                Aux termes de ce contrat de location, vous êtes {gA(form.locataire_civilite, form.locataire_type, 'tenu', 'tenue')} de régler le loyer et les charges locatives aux échéances convenues. Or, sauf erreur ou omission de ma part, plusieurs sommes demeurent impayées à ce jour au titre de votre occupation du logement.
               </p>
               <p style={{ marginBottom:'0.75rem' }}>
                 {form.loyers.length > 1 ? 'Les sommes impayées sont les suivantes :' : "L'impayé concerne l'échéance suivante :"}
@@ -2397,7 +2431,7 @@ const LoyerImpayeForm = ({ onBack, user }) => {
               )}
               {form.echeancier && (
                 <p style={{ marginBottom:'1.25rem' }}>
-                  Si cette situation résulte de difficultés passagères, je reste disposé(e) à examiner une solution amiable, notamment la mise en place d'un échéancier écrit{form.contact_echeancier ? `. Dans ce cas, je vous invite à me contacter dans les plus brefs délais au ${form.contact_echeancier}` : ''}.
+                  Si cette situation résulte de difficultés passagères, je reste {gA(form.bailleur_civilite, form.bailleur_type, 'disposé', 'disposée')} à examiner une solution amiable, notamment la mise en place d'un échéancier écrit{form.contact_echeancier ? `. Dans ce cas, je vous invite à me contacter dans les plus brefs délais au ${form.contact_echeancier}` : ''}.
                 </p>
               )}
               {form.contestation && (
@@ -2434,10 +2468,10 @@ const LoyerImpayeForm = ({ onBack, user }) => {
                 <div><strong>Objet :</strong> Mise en demeure de payer — loyer{form.loyers.length>1?'s':''} et/ou charges impayé{form.loyers.length>1?'s':''}</div>
               </div>
               <div style={{ filter: showFullLetter ? 'none' : 'blur(4px)', userSelect: showFullLetter ? 'text' : 'none', WebkitUserSelect: showFullLetter ? 'text' : 'none', transition:'filter 0.3s' }}>
-                <div style={{ marginBottom:'1.5rem' }}>Madame, Monsieur,</div>
+                <div style={{ marginBottom:'1.5rem' }}>{gSalut(form.locataire_civilite, form.locataire_type)}</div>
                 {bodyJSX}
                 <div style={{ marginTop:'2rem' }}>
-                  Dans l'attente d'une régularisation rapide de votre part, je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+                  Dans l'attente d'une régularisation rapide de votre part, je vous prie d'agréer, {gAgree(form.locataire_civilite, form.locataire_type)}, l'expression de mes salutations distinguées.
                 </div>
               </div>
               <div style={{ marginTop:'1.5rem', display:'inline-block' }}>
@@ -2622,7 +2656,7 @@ const GarantImpayeForm = ({ onBack, user }) => {
   const newMois = () => ({ id: Date.now() + Math.random(), periode: '', loyer: '', charges: '0', paye: '0' });
 
   const [form, setForm] = useState({
-    bailleur_type: '', bailleur_nom: '', bailleur_adresse: '', bailleur_cp: '', bailleur_ville: '',
+    bailleur_type: '', bailleur_civilite: '', bailleur_nom: '', bailleur_adresse: '', bailleur_cp: '', bailleur_ville: '',
     bailleur_email: user?.email || '', bailleur_tel: '', bailleur_siren: '',
     garant_civilite: 'M.', garant_nom: '', garant_adresse: '', garant_cp: '', garant_ville: '',
     locataire_civilite: 'M.', locataire_nom: '',
@@ -2691,6 +2725,13 @@ const GarantImpayeForm = ({ onBack, user }) => {
                 <FTypeBtn active={form.bailleur_type==='professionnel'} onClick={() => up('bailleur_type','professionnel')} label="Professionnel" sub="SCI, agence, société" />
               </div>
               {form.bailleur_type && (<>
+                {form.bailleur_type==='particulier' && (
+                  <FField label="Civilité">
+                    <div style={{ display:'flex', gap:'0.75rem' }}>
+                      {['M.','Mme'].map(c => <FTypeBtn key={c} active={form.bailleur_civilite===c} onClick={() => up('bailleur_civilite',c)} label={c} />)}
+                    </div>
+                  </FField>
+                )}
                 <FField label={form.bailleur_type==='professionnel' ? 'Raison sociale' : 'Nom complet'} required>
                   <input style={inputStyle} value={form.bailleur_nom} onChange={e => up('bailleur_nom', e.target.value)}
                     placeholder={form.bailleur_type==='professionnel' ? 'ex : Dupont Immobilier SARL' : 'ex : Marie Dupont'}
@@ -2964,7 +3005,7 @@ const GarantImpayeForm = ({ onBack, user }) => {
                 {form.bien_adresse||'—'}
               </p>
               <p style={{ marginBottom:'1.25rem' }}>
-                Conformément à l'acte de cautionnement solidaire que vous avez signé le <strong>{fmtDateFr(form.caution_date)}</strong>, vous vous êtes engagé(e) à garantir le paiement des loyers, charges et accessoires dus par le locataire en cas de défaillance de sa part.
+                Conformément à l'acte de cautionnement solidaire que vous avez signé le <strong>{fmtDateFr(form.caution_date)}</strong>, vous vous êtes {gA(form.garant_civilite, 'particulier', 'engagé', 'engagée')} à garantir le paiement des loyers, charges et accessoires dus par le locataire en cas de défaillance de sa part.
               </p>
               <p style={{ marginBottom:'1.25rem' }}>
                 Or, je vous informe que, malgré mes relances, le locataire n'a pas réglé les sommes qui lui incombent au titre de son contrat de bail.
@@ -3033,7 +3074,7 @@ const GarantImpayeForm = ({ onBack, user }) => {
                 <p style={{ marginBottom:'1.25rem' }}>Le paiement devra être effectué par : {form.preciser_mode}.</p>
               )}
               <p style={{ marginBottom:'1.25rem' }}>
-                À défaut de paiement intégral de votre part dans le délai imparti, je serai contraint(e) de transmettre ce dossier à un commissaire de justice pour la délivrance d'un commandement de payer. Si cette démarche n'aboutit pas, j'envisagerai la saisine de la juridiction compétente à votre encontre, conjointement avec le locataire, afin d'obtenir la condamnation solidaire au paiement des sommes dues.
+                À défaut de paiement intégral de votre part dans le délai imparti, je serai {gA(form.bailleur_civilite, form.bailleur_type, 'contraint', 'contrainte')} de transmettre ce dossier à un commissaire de justice pour la délivrance d'un commandement de payer. Si cette démarche n'aboutit pas, j'envisagerai la saisine de la juridiction compétente à votre encontre, conjointement avec le locataire, afin d'obtenir la condamnation solidaire au paiement des sommes dues.
               </p>
               {(form.contact_tel || form.contact_email) && (
                 <p style={{ marginBottom:'1.25rem' }}>
